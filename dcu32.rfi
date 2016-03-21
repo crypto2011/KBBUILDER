@@ -1,0 +1,2760 @@
+/*            
+This file describes the results of reverse engineering the DCU file format for
+Delphi 2.0-8.0, 2005(.net and WIN32), 2006/Turbo Delphi,2009,2010,XE
+(2006-2010,XE WIN32 only), Kylix 1.0-3.0.
+Note, that the FlexT file describes only the DCU memory layout aspects of file
+format. The Pascal code for parsing DCUs (DCU32INT project) is published at
+http://hmelnov.icc.ru/DCU/
+*/
+
+data
+  0x0000 ulong Magic
+
+%$IF Magic=0xF21F148C;
+//Kylix1.0
+const
+  Ver=100;
+descr ('Borland Kylix 1.0 unit file.')
+%$ELSIF Magic=0x0E1011DD;
+//Kylix2.0
+const
+  Ver=101;
+descr ('Borland Kylix 2.0 unit file.')
+%$ELSIF Magic=0x0E0001DD;
+//Kylix2.0, another magic
+const
+  Ver=101;
+descr ('Borland Kylix 2.0 unit file (kind $00).')
+%$ELSIF (Magic=0x0F1001DD)or(Magic=0x0F0001DD);
+//Kylix3.0
+const
+  Ver=102;
+descr ('Borland Kylix 3.0 unit file.')
+
+%$ELSIF Magic=0x1A00034B; 
+//Delphi XE5 - not completely tested yet
+const
+  Ver=18;
+descr ('Borland Delphi XE5 (win32) unit file.')
+%$ELSIF Magic=0x1A00234B; 
+//Delphi XE5 - not completely tested yet
+const
+  Ver=18;
+  mode64=1;
+descr ('Borland Delphi XE5 (win64) unit file.')
+%$ELSIF Magic=0x1A00044B; 
+//Delphi XE5 - not completely tested yet
+const
+  Ver=18;
+descr ('Borland Delphi XE5 (osx32) unit file.')
+%$ELSIF Magic=0x1A00144B; 
+//Delphi XE5 - not completely tested yet
+const
+  Ver=18;
+  iOs=1;
+descr ('Borland Delphi XE5 (iosEmulator) unit file.')
+%$ELSIF Magic=0x1A00764B; 
+//Delphi XE5 - not completely tested yet
+const
+  Ver=18;
+  iOs=2;
+descr ('Borland Delphi XE5 (iosDevice) unit file.')
+%$ELSIF Magic=0x1A00774B; 
+//Delphi XE5 - not completely tested yet
+const
+  Ver=18;
+  iOs=3;
+descr ('Borland Delphi XE5 (Android) unit file.')
+
+%$ELSIF Magic=0x1900034B; 
+//Delphi XE4 - not completely tested yet
+const
+  Ver=17;
+descr ('Borland Delphi XE4 (win32) unit file.')
+%$ELSIF Magic=0x1900234B; 
+//Delphi XE4 - not completely tested yet
+const
+  Ver=17;
+  mode64=1;
+descr ('Borland Delphi XE4 (win64) unit file.')
+%$ELSIF Magic=0x1900044B; 
+//Delphi XE4 - not completely tested yet
+const
+  Ver=17;
+descr ('Borland Delphi XE4 (osx32) unit file.')
+%$ELSIF Magic=0x1900144B; 
+//Delphi XE4 - not completely tested yet
+const
+  Ver=17;
+  iOs=1;
+descr ('Borland Delphi XE4 (iosEmulator) unit file.')
+%$ELSIF Magic=0x1900764B; 
+//Delphi XE4 - not completely tested yet
+const
+  Ver=17;
+  iOs=2;
+descr ('Borland Delphi XE4 (iosDevice) unit file.')
+
+%$ELSIF Magic=0x1800034B; 
+//Delphi XE3 - not completely tested yet
+const
+  Ver=16;
+descr ('Borland Delphi XE3 (win32) unit file.')
+%$ELSIF Magic=0x1800234B; 
+//Delphi XE3 - not completely tested yet
+const
+  Ver=16;
+  mode64=1;
+descr ('Borland Delphi XE3 (win64) unit file.')
+%$ELSIF Magic=0x1800044B; 
+//Delphi XE3 - not completely tested yet
+const
+  Ver=16;
+descr ('Borland Delphi XE3 (osx32) unit file.')
+
+%$ELSIF Magic=0x1700034B; 
+//Delphi XE2 - not completely tested yet
+const
+  Ver=15;
+descr ('Borland Delphi XE2 (win32) unit file.')
+%$ELSIF Magic=0x1700234B; 
+//Delphi XE2 - not completely tested yet
+const
+  Ver=15;
+  mode64=1;
+descr ('Borland Delphi XE2 (win64) unit file.')
+%$ELSIF Magic=0x1700044B; 
+//Delphi XE2 - not completely tested yet
+const
+  Ver=15;
+descr ('Borland Delphi XE2 (osx32) unit file.')
+%$ELSIF Magic=0x1600034B;
+//Delphi XE - not completely tested yet
+const
+  Ver=14;
+descr ('Borland Delphi XE unit file.')
+%$ELSIF Magic=0x15000045;
+//Delphi2010
+const
+  Ver=13;
+descr ('Borland Delphi 2010 unit file.')
+%$ELSIF Magic=0x14000039;
+//Delphi2009
+const
+  Ver=12;
+descr ('Borland Delphi 2009 unit file.')
+%$ELSIF Magic=0x1200024D;
+//Delphi 2006 .net
+const
+  Ver=10;
+  MSIL=1;
+descr ('Borland Delphi 2006 unit file.')
+%$ELSIF Magic=0x12000023;
+//Delphi 2006
+const
+  Ver=10;
+descr ('Borland Delphi 2006 unit file.')
+%$ELSIF Magic=0x11000239;
+//Delphi 2005 .net
+const
+  Ver=9;
+  MSIL=1;
+descr ('Borland Delphi 2005 MSIL unit file.')
+%$ELSIF (Magic=0x1100000D)or(Magic=0x11800009); //0x11800009 in DUnitMainForm.dcu
+//Delphi 2005
+const
+  Ver=9;
+descr ('Borland Delphi 2005 unit file.')
+%$ELSIF Magic=0x10000229;
+//Delphi8.0 - not completely tested yet
+const
+  Ver=8;
+  MSIL=1;
+descr ('Borland Delphi 8.0 MSIL unit file.')
+%$ELSIF Magic and 0xFF80FFFF=0xFF0000DF;
+//Delphi7.0 - not completely tested yet
+const
+  Ver=7;
+descr ('Borland Delphi 7.0 (Free) unit file.')
+%$ELSIF Magic and 0xFF00FFFF=0x0F0000DF;
+//Delphi7.0
+const
+  Ver=7;
+descr ('Borland Delphi 7.0 unit file.')
+%$ELSIF Magic and 0xFF80FFFF=0x0E0000DD;
+//Delphi6.0
+const
+  Ver=6;
+descr ('Borland Delphi 6.0 unit file.')
+%$ELSIF Magic and 0xFF80FFFF=0x0E8000DD;
+//Delphi6.0, another magic
+const
+  Ver=6;
+descr ('Borland Delphi 6.0 unit file (kind $80).')
+%$ELSIF Magic=0xF21F148B;
+//Delphi5.0
+const
+  Ver=5;
+descr ('Borland Delphi 5.0 unit file.')
+%$ELSIF Magic=0x4768A6D8;
+//Delphi4.0
+const
+  Ver=4;
+descr ('Borland Delphi 4.0 unit file.')
+%$ELSIF Magic=0x44518641; //'A†QD'
+//Delphi3.0
+const
+  Ver=3;
+descr ('Borland Delphi 3.0 unit file.')
+%$ELSIF Magic=0x50505348; //HSPP
+//Delphi2.0
+const
+  Ver=2;
+descr ('Borland Delphi 2.0 unit file.')
+%$ELSE
+assert 0; //fail
+%$END
+
+%$IF not defined MSIL;
+const
+MSIL=0;
+%$END
+
+%$IF not defined Packaged;
+const
+Packaged=0;
+%$END
+
+%$IF not defined mode64;
+const
+mode64=0;
+%$END
+
+%$IF not defined iOs;
+const
+iOs=0;
+%$END
+
+descr (NL,
+  'Info Src: Partially reconstructed by me (Alexei Hmelnov (mailto:alex@icc.ru)).',NL,
+  'Info Src: DoDi''s DCU Documentation (mailto:VBDis@aol.com)',NL)
+
+const
+  IsKylix = Ver>=100;
+  IsDelphi = Ver<100;
+  gen7 = (Ver>=7) and IsDelphi or (Ver>=102);
+
+type
+
+TDCU30RecTag enum char (
+  drStop=0,
+  drStop_a='a', //Last Tag in all files
+  drStop1='c',
+  drUnit='d',
+  drUnit1='e', //in implementation
+  drImpType='f',
+  drImpVal='g',
+  drDLL='h',
+  drExport='i',
+  drEmbeddedProcStart='j',
+  drEmbeddedProcEnd='k',
+  drCBlock='l',
+  drFixUp='m',
+  drImpTypeDef='n', //import of type definition by "A = type B"
+%$IF (Ver>=8)and IsDelphi;
+  drORec='o', //goes before drCBlock
+ %$IF (Ver>=10)and IsDelphi;
+  drStrConstRec='6',
+ %$ELSE
+  drStrConstRec='5',
+ %$END
+%$END
+  drSrc='p',
+  drObj='q',
+  drRes='r',
+  drAsm='s', //Observed in D5
+  drStop2='', //!!!
+  drConst=0x25, //'%',
+
+ %$IF (Ver>=10)and IsDelphi;
+  drThreadVar='2',
+  drResStr='3',
+ %$ELSE
+  drThreadVar='1',
+  drResStr='2',
+ %$END
+
+  drType='*',
+  drTypeP='&',
+  drProc='(',
+  drSysProc=')',
+  drVar=0x20, //' ',
+  drVarC=0x27, //''',
+  drAbsVar='$',
+  drVoid='@',
+  drLabel='+',
+  drBoolRangeDef='A',
+  drChRangeDef='B',
+  drEnumDef='C',
+  drRangeDef='D',
+  drPtrDef='E',
+  drClassDef='F',
+  drObjVMTDef='G',
+  drProcTypeDef='H',
+  drFloatDef='I',
+  drSetDef='J',
+  drShortStrDef='K',
+  drArrayDef='L',
+  drRecDef='M',
+  drObjDef='N',
+  drFileDef='O',
+  drTextDef='P',
+  drWCharRangeDef='Q', //WideChar
+  drStringDef='R',
+  drVariantDef='S',
+  drInterfaceDef='T',
+  drWideStrDef='U',
+  drWideRangeDef='V',
+%$IF (Ver>=8)and IsDelphi;
+  drMetaClassDef='W', //?? guess name
+ %$IF (Ver>=12)and IsDelphi;
+  drDynArrayDef='X', //Separate from drArrayDef tag now
+  drTemplateArgDef='Y',
+  drTemplateCall='Z',
+  drUnicodeStringDef='[',
+ %$IF (Ver>=13)and IsDelphi;
+  drUnitInlineSrc='v',
+ %$END
+ %$END
+%$END
+//Various tables
+  drCodeLines=0x90,
+  drLinNum=0x91,
+  drStrucScope=0x92,
+  drSymbolRef=0x93,
+  drLocVarTbl=0x94,
+  drUnitFlags=0x96,
+%$IF IsKylix; //Kylix specific flags
+ // drUnit3=0xE0, //4-bytes record, present in almost all units
+ // drUnit3s=0x06, //3-bytes record, present in System and SysInit
+  drUnit4=0x0F, //5-bytes record, was observed in QOpenBanner.dcu only
+%$ELSIF Ver>=7;
+ %$IF (Ver>=10)and IsDelphi;
+  drUnitAddInfo='5',
+ %$ELSE
+  drUnitAddInfo='4',
+ %$END
+  drProcAddInfo=0x9E,
+%$END
+%$IF gen7;
+  drConstAddInfo=0x9C, //caused by the "platform" keyword
+%$END
+%$IF (Ver>=7)and IsDelphi;
+  drInfo98=0x98,
+%$END
+%$IF (Ver>=10)and IsDelphi;
+//  drAddInfo6='6',
+  drSpecVar='7',
+  drCLine=0xA0,
+  drA1Info=0xA1,
+  drA2Info=0xA2,
+ %$IF (Ver>=12)and IsDelphi;
+  arCopyDecl=0xA3,
+  drA5Info=0xA5,
+  drA6Info=0xA6,
+  drA7Info=0xA7,
+  drA8Info=0xA8,
+ %$IF (Ver>=17)and IsDelphi;
+  drA9Info=0xA9,
+ %$END
+  drDelayedImpInfo=0xB0,
+ %$END
+ %$IF (Ver>=15)and IsDelphi and mode64;
+  drSegInfo=0xB1,
+  drB2Info=0xB2,
+ %$END
+%$END
+  drSetDeft=0x9A //Set Default parameter value
+)
+
+type bit
+  TBit num+(1)
+  TBit2 num+(2)
+  TBit3 num+(3)
+  TBit4 num+(4)
+  TBit7 num+(7)
+  TBit8 num+(8)
+  TBit14 num+(14)
+  TBit21 num+(21)
+  TBit28 num+(28)
+  TBit32 num+(32)
+
+  TNDXB1b struc pas
+    F: TBit
+    V: TBit7
+  ends:assert[@.F=0]: displ=(HEX(@.V))
+
+  TNDXB2b struc pas
+    F: TBit2
+    V: TBit14
+  ends:assert[@.F=0x1]: displ=(HEX(@.V))
+
+  TNDXB3b struc pas
+    F: TBit3
+    V: TBit21
+  ends:assert[@.F=0x3]: displ=(HEX(@.V))
+
+  TNDXB4b struc pas
+    F: TBit4
+    V: TBit28
+  ends:assert[@.F=0x7]: displ=(HEX(@.V))
+
+  TNDXB5b struc pas
+    F: TBit8
+    V: TBit32
+  ends:assert[@.F=0xF]: displ=(HEX(@.V))
+
+  TNDXB9b struc pas
+    F: TBit8  //F=0xFF: Delphi 4.0 - 64 bit
+    Lo: TBit32
+    Hi: TBit32
+  ends: displ=(HEX(@.Hi),HEX(@.Lo,8))
+
+  TNDXB1 try
+   b1: TNDXB1b
+   b2: TNDXB2b
+   b3: TNDXB3b
+   b4: TNDXB4b
+   b5: TNDXB5b
+   b9: TNDXB9b
+  endt: displ=('#',@):let Val=@.b1.V exc @.b2.V exc @.b3.V exc
+    @.b4.V exc @.b5.V exc @.b9.Lo/*8-byte values are not supported in FlexT yet*/;
+
+/*
+  TNDXB1 struc pas
+    IsW: TBit
+    V: case @.IsW of
+     0: TBit7
+     else struc pas
+       IsB3: TBit
+       V: case @.IsB3 of
+        0: TBit14
+        else struc pas
+          IsB4: TBit
+          V: case @.IsB4 of
+           0: TBit21
+           else struc pas
+             IsB5: TBit
+             V: case @.IsB5 of
+              0: TBit28
+              else struc pas
+                Z: TBit4
+                V: case @.Z of
+                  0: TBit32
+                  else struc pas //0xF: Delphi 4.0 - 64 bit
+                    Lo: TBit32
+                    Hi: TBit32
+                  ends: displ=(HEX(@.Hi),HEX(@.Lo))
+                 endc: displ=((@.0)exc(@.0xF))
+              ends
+              endc:displ=((@.0)exc(@.1))
+           ends
+           endc:displ=((@.0)exc(@.1.V))
+        ends
+        endc:displ=((@.0)exc(@.1.V))
+     ends
+     endc:displ=((@.0)exc(@.1.V))
+  ends:displ=('#',@.V):let Val=(@.V.0)exc((@.V.1.V.0)exc
+      ((@.V.1.V.1.V.0)exc((@.V.1.V.1.V.1.V.0)exc
+      (@.V.1.V.1.V.1.V.1.V/*4.0*/.0))));
+*/
+
+/*
+TFileTime struc pas
+  S: num+(5)
+  M: num+(6)
+  H: num+(5)
+  D: num+(5)
+  Mon: num+(4)
+  Y: num+(7)
+ends:displ=(INT(@.D),'.',INT(@.Mon),'.',INT(@.Y+1980),' ',
+      INT(@.H),':',INT(@.M),':',INT(@.S*2))
+*/
+
+%$IF IsDelphi;
+
+include DOSFTime.rfi
+
+%$ELSE
+
+include UNIXTime.rfi
+
+type
+
+TFileTime TTimeStamp
+
+%$END
+
+type
+
+%$IF (Ver>=12)and IsDelphi; 
+TNameStr struc pas
+  L: byte
+  LL: case @.L of
+    0xFF: ulong
+   endc
+  S: array[(@.LL.0xFF)exc @.L]of char
+ends: displ=(@.S)
+%$ELSE
+TNameStr str
+%$END
+
+
+TDCU30ListC forward
+
+TSrcInf struc pas
+  FT: TFileTime
+  B: TNDXB1
+%$IF MSIL;
+  path: str
+%$END
+ends
+
+%$IF (Ver>7)and IsDelphi;
+TResInf struc pas
+  FT: TFileTime
+  B: TNDXB1
+ends
+%$ELSE
+TResInf TSrcInf
+%$END
+
+TUnitInf struc pas
+ %$IF (Ver>=8)and IsDelphi;
+  hPack: TNDXB1
+ %$END
+ %$IF (Ver>=10)and IsDelphi;
+  Inf: TNDXB1
+ %$ELSE
+  Inf: ulong
+ %$END
+%$IF (Ver=7)and IsDelphi;
+  X: ulong
+//%$ELSIF (Ver>=8)and IsDelphi;
+//  X: byte
+%$END
+ %$IF (Ver>=12)and IsDelphi;
+  X: TNDXB1
+ %$END
+  L: TDCU30ListC
+ends
+
+%$IF (Ver>=13)and IsDelphi;
+TUnitInlineSrcInf struc pas
+  Inf: ulong
+  B: TNDXB1 //Source number
+ends
+%$END
+
+%$IF (Ver>=8)and IsDelphi;
+TDLLInf struc pas
+ %$IF (Ver>=10)and IsDelphi;
+  Inf: TNDXB1
+ %$ELSE
+  Inf: ulong
+ %$END
+  X: ulong
+ %$IF (Ver>=12)and IsDelphi;
+  X: TNDXB1 //analogously to TUnitInf b0: Byte
+ %$END
+  L: TDCU30ListC
+ends
+%$ELSE
+  TDLLInf TUnitInf
+%$END
+
+
+TImpTypeDefInf struc pas
+  RTTISz: TNDXB1//L: Byte
+  Inf: ulong
+ends
+
+TExportInf struc pas
+  hSym: TNDXB1
+  Index: TNDXB1
+ends
+
+TNameFDecl struc pas
+  B: TNDXB1
+%$IF (Ver>=8)and IsDelphi;
+  B1: TNDXB1
+%$END
+ %$IF (Ver>=12)and IsDelphi;
+  B3: TNDXB1
+ %$END
+  Inf: case @.B:Val and 0x40 of
+    0x40: ulong
+  endc
+%$IF (Ver>=8)and IsDelphi;
+  B2: case @.B1:Val and 0x80  of
+    0x80: struc pas
+       X: TNDXB1 //Base type for defs like TX = type TY
+        //when TX and TY both in the same unit,
+        //earlier versions were just duplicating definitions
+ %$IF (Ver=8)and IsDelphi;
+       Z: case @@@.B:Val and 0x08  of
+        0x08: TNDXB1 //always 0
+       endc
+ %$END
+     ends
+  endc
+%$END
+ends
+
+TTypeInf struc pas
+  NF: TNameFDecl
+  hDef: TNDXB1
+%$IF Packaged;
+  hPkg: TNDXB1
+%$END
+ends
+
+TTypePInf struc pas
+  NF: TNameFDecl
+  hDef: TNDXB1
+//  B1: Byte
+  B1: TNDXB1
+%$IF Packaged;
+  hPkg: TNDXB1
+%$END
+ends
+
+TVarInf struc pas
+  NF: TNameFDecl
+  hDT: TNDXB1
+  Ofs: TNDXB1 //hDT: TNDXB1 //B0: Byte
+ends
+
+%$IF (Ver>=15)and IsDelphi and mode64;
+TConstVal(Kind) struc pas
+  Sz: TNDXB1
+  Val: case (@.Sz.b1.V)exc 1 of
+    0: case @@:Kind of
+      4: void
+     else TNDXB1
+     endc
+  else raw[@@.Sz:Val]
+  endc
+ends
+%$ELSE
+TConstVal struc pas
+  Sz: TNDXB1
+  Val: case (@.Sz.b1.V)exc 1 of
+    0: TNDXB1
+  else raw[@@.Sz:Val]
+  endc
+ends
+%$END
+
+TConstDef struc pas
+  NF: TNameFDecl
+  //Inf: ulong
+  hDT: TNDXB1
+%$IF Ver>4;
+  Kind: TNDXB1 //O - scalar, 1 - string (offset=8), 2 - resourcestring,
+               //3-float, 4 - set,
+               //[ver>=verD12] 5 - Unicode string (offset=12)
+               //for 64-bit mode 4 means pointer
+%$END
+%$IF (Ver>=15)and IsDelphi and mode64;
+  Val: TConstVal(@.Kind:Val)
+%$ELSE
+  Val: TConstVal
+%$END
+ends
+
+/*
+TResStrDef struc pas
+  b80: Byte
+  Inf: case @.b80 and 0x80 of
+    0x80: ulong
+  endc
+  hDT: TNDXB1
+  Ofs: TNDXB1
+/*
+  NDX1: TNDXB1
+  B1: Byte
+  B2: Byte
+  V: TNDXB1
+  Val: TConstVal
+*/
+ends
+*/
+
+TProcArgTag enum TDCU30RecTag (
+  arStop='c',
+  arVal='!',
+  arVar='"',
+  arResult='#',
+  arAbsLocVar='$',
+  arLabel='+',
+  arLocVar=0x20,//' ',
+  arConst=0x25, //'%',
+  arLocType='*',
+  arEmbeddedProcEnd='k', //For Ver 5.0
+//Fields
+  arFld=',',
+ %$IF (Ver>=10)and IsDelphi;
+  arClassVar='-',
+  arMethod='.',
+  arConstr='/',
+  arDestr='0',
+  arProperty='1',
+ %$ELSE
+  arMethod='-',
+  arConstr='.',
+  arDestr='/',
+  arProperty='0',
+ %$END
+  arCDecl=0x81,
+  arPascal=0x82,
+  arStdCall=0x83,
+  arSafeCall=0x84,
+%$IF (Ver>=10)and IsDelphi;
+  arCopyDecl=0xA3,
+%$END
+%$IF (Ver>=13)and IsDelphi;
+  arAnonymousBlock=0x01,
+%$END
+ %$IF (Ver>=16)and IsDelphi;
+  arFinalFlag=0xC2,
+ %$END
+  arSetDeft=0x9A //Set Default parameter value
+)
+
+TPropInfo struc pas
+  Flags: TNDXB1
+ %$IF (Ver>=8)and IsDelphi;
+  FlagsEx: TNDXB1 //For Ver>=8 public=0x1,protected=0x2,published=0x5,class=0x10
+ %$END
+ %$IF (Ver>=12)and IsDelphi;
+  X4: TNDXB1
+ %$END
+  hDT: TNDXB1
+  Ndx: TNDXB1
+  hIndex: TNDXB1 //property index
+/*  D0Fl0: ulong
+  B80: Byte */
+  hRead: TNDXB1
+  hWrite: TNDXB1
+  hStored: TNDXB1
+/*  D0Fl1: ulong
+  B80a: Byte */
+ %$IF (Ver>=8)and IsDelphi;
+  X: TNDXB1
+  X1: TNDXB1
+ %$IF MSIL;
+  X2: TNDXB1
+  X3: TNDXB1
+ %$END
+ %$END
+  hDeft: TNDXB1
+ends
+
+TSetDeftInfo struc pas
+  hConst: TNDXB1
+  hArg: TNDXB1
+/*  sdB0: Byte
+  sdB1: Byte
+  sdB2: Byte
+  sdB3: Byte
+*/
+ends
+
+//%$IF (Ver>=7)and IsDelphi;
+%$IF gen7;
+
+%$IF (Ver>=8)and IsDelphi;
+
+TConstAddInfo01Rec struc pas
+  hDef: TNDXB1
+  V: TNDXB1
+  Len: TNDXB1
+  SD: case @.Len:Val>0 of
+    1: struc pas
+      Name: array[@@@.Len:Val]of Char
+      Cnt: TNDXB1
+      Defs: array[@.Cnt:Val] of TNDXB1
+     ends
+   endc
+ends
+
+TStrNDXB1 struc pas
+  Len: TNDXB1
+  V: array[@.Len:Val]of Char
+ends
+
+
+TConstAddInfo0A_7Rec struc pas
+  Name: TStrNDXB1
+  V: TNDXB1
+  V1: TNDXB1
+  hDT: TNDXB1
+ends
+
+const
+%$IF (Ver>=12)and IsDelphi;
+  cafInline=0x40000;
+  cafBigVal=0x80000;
+%$ELSE
+  cafInline=0x80000;
+  cafBigVal=0x100000;
+%$END
+
+type
+
+TConstAddInfoRec struc pas
+  Tag: Byte
+  D: case @.Tag of
+   0x01: struc pas
+     hDef: TNDXB1
+     F: TNDXB1 //$1-deprecated,$2-Platform,$80000-Inline
+     %$IF (Ver>=10)and IsDelphi and(iOs=0);
+     IP1: case @.F:Val and 0x1000000 of
+      0x1000000: TNDXB1 //Some int(4)
+     endc
+     %$END
+   /**/
+    %$IF MSIL; //and(Ver<=9);
+     Cnt: TNDXB1
+     Tbl: array[@.Cnt:Val] of TConstAddInfo01Rec
+    %$END
+    /**/
+    %$IF (Ver>=9)and IsDelphi;
+     %$IF (Ver>=12)and IsDelphi;
+      IP2: case @.F:Val and 0x800000/*0x840000*/ of
+       0x800000: TNDXB1 ////Class reference, when 0x40000 already in Inline
+      endc
+     %$END
+     %$IF (Ver>=12)and IsDelphi;
+      Deprecated: case @.F:Val and 0x1 of
+       0x1: TStrNDXB1
+      endc
+     %$END
+     Inline: case @.F:Val and cafInline of
+      cafInline: struc pas
+       %$IF (Ver>=10)and IsDelphi;
+         Y: TNDXB1
+         Y1: TNDXB1
+        %$IF MSIL;
+        // Y1: TNDXB1
+        %$END
+       %$END
+        %$IF (Ver>=13)and IsDelphi;
+        // DY: array[@.Y:Val]of TNDXB1
+        %$END
+         Len: TNDXB1
+         D: raw[@.Len:Val] //raw[@.Len:Val]of Byte
+         X: array[5] of TNDXB1
+        %$IF (Ver>=15)and IsDelphi;
+         XX: TNDXB1
+        %$END
+         V2: TNDXB1 //Always 2=#1
+         Len1: TNDXB1
+        %$IF (Ver>=12)and IsDelphi;
+         Y2: TNDXB1
+         Y3: TNDXB1
+         //Y4: TNDXB1
+         Len1a: TNDXB1
+         Da: array[@.Len1a:Val]of long
+        %$END
+         D1: array[@.Len1:Val]of struc pas
+           V: TNDXB1
+         %$IF (Ver>=12)and IsDelphi;
+           Y: TNDXB1
+           Y1: TNDXB1
+         %$END
+           Z1: TNDXB1 //Always 0
+           Z: TNDXB1 //Always 0
+         %$IF (Ver>=13)and IsDelphi;
+           N: TNDXB1
+         %$END
+         %$IF (Ver>=12)and IsDelphi;
+           R: case @.Z:Val<>0 of
+            1: TNDXB1
+           endc
+         %$END
+          ends
+         Len2: TNDXB1
+         D2: array[@.Len2:Val/*when (@.Len2:Val<200)exc 0*/]of struc pas
+           LF: TNDXB1
+          %$IF (Ver>=12)and IsDelphi;
+          /*
+           V: array[@.LF:Val div 2]of TNDXB1
+           C: case @.LF:Val and 1 of
+            1: struc pas //!!!
+               N1: TNDXB1
+               N2: TNDXB1
+             ends
+           endc*/
+           C: case @.LF:Val of
+            1: struc pas
+               N1: TNDXB1
+               N2: TNDXB1
+              %$IF (Ver>=14);
+               N3: TNDXB1
+              %$END
+             ends
+            2: struc pas
+               N1: TNDXB1
+             ends
+            3: struc pas
+              //%$IF (Ver<14);
+               N1: TNDXB1
+               N2: TNDXB1
+               N3: TNDXB1
+              //%$END
+             ends
+            4: struc pas
+               N1: TNDXB1
+               N2: TNDXB1
+             ends
+            5: struc pas
+               N1: TNDXB1
+               N2: TNDXB1
+               N3: TNDXB1
+               N4: TNDXB1
+             ends
+            6: struc pas //Ver13 only
+               N1: TNDXB1
+               /*N2: TNDXB1
+               N3: TNDXB1
+               N4: TNDXB1
+               N5: TNDXB1*/
+             ends
+           endc
+          %$ELSE
+           V: TNDXB1
+          %$END
+          ends
+         Len3: TNDXB1
+         ImpData: array[@.Len3:Val/*when (@.Len3:Val<100)exc 0*/]of struc pas
+           hUnit: TNDXB1
+           Len: TNDXB1
+           D: array[@.Len:Val/*when (@.Len:Val<100)exc 0*/]of TNDXB1 //Imported def
+          ends
+        %$IF (Ver>=10)and IsDelphi;
+         Len4: TNDXB1
+         Data4: array[@.Len4:Val/*when (@.Len4:Val<100)exc 0*/]of TNDXB1
+        %$IF (Ver>=12)and IsDelphi;
+         V0: TNDXB1
+         V1: TNDXB1
+         V2: TNDXB1
+        %$END
+        %$END
+       /*
+        %$IF (Ver>=12)and IsDelphi;
+         Len4: TNDXB1
+         Data4: array[@.Len4:Val/*when (@.Len4:Val<100)exc 0*/]of TNDXB1
+         V0: TNDXB1
+         V1: TNDXB1
+         V2: TNDXB1
+        %$END
+        */
+       /*
+        %$IF (Ver>=10)and IsDelphi;
+        //may be part of IP
+         DeprecatedArgs: case @@@.F:Val and 0x100001 of
+           0x1: struc pas
+             LenArgsF: TNDXB1
+             ArgsF: array[@.LenArgsF:Val]of TNDXB1
+            ends
+          endc
+        %$END*/
+       ends
+     endc
+    %$IF (Ver>=9)and IsDelphi;
+     InfBig: case @.F:Val and cafBigVal of
+      cafBigVal: TNDXB1 //Big value - 5 bytes
+     endc
+    %$END
+    /*
+    %$IF (Ver>=12)and IsDelphi;
+     Inf80000: case @.F:Val and 0x80000 of
+      0x80000: TNDXB1 //Big value - 5 bytes
+     endc
+    %$END
+     IP: case @.F:Val and 0x100000 of
+      0x100000: struc pas
+       %$IF (Ver>=10)and IsDelphi;
+        Cnt: TNDXB1
+        Tbl: array[@.Cnt:Val] of TNDXB1
+       %$END
+        V: TNDXB1 //Some int(4-byte)
+      ends
+     endc
+     */
+/*1
+     %$IF (Ver>=10)and IsDelphi;
+     IP1: case @.F:Val and 0x1000000 of
+      0x1000000: TNDXB1 //Some int(4)
+     endc
+     %$END
+*/
+    %$END
+    ends
+   %$IF (Ver>=10)and IsDelphi;
+   0x04: struc pas
+     V: TNDXB1
+     V1: TNDXB1
+    ends
+   %$END
+   0x06: struc pas
+     hDef: TNDXB1
+     hDT: TNDXB1
+     V: TNDXB1
+     hDef1: TNDXB1
+    ends
+   0x07: struc pas
+     hDef: TNDXB1
+     hDef1: TNDXB1
+     hDef2: TNDXB1
+     V: TNDXB1
+    ends
+   0x09: struc pas
+     hDef: TNDXB1
+     hDT: TNDXB1
+    ends
+   0x0A: struc pas
+     hDef: TNDXB1
+     V: TNDXB1
+     F: TNDXB1
+     hDT: case @.F:Val and 0x1 of
+      0x1: TNDXB1
+     endc
+     hDef1: case @.F:Val and 0x2 of
+      0x2: TNDXB1
+     endc
+     V2: case @.F:Val and 0x4 of
+      0x4: TNDXB1
+     endc
+     V3: case @.F:Val and 0x8 of
+      0x8: TNDXB1
+     endc
+     V4: case @.F:Val and 0x10 of
+      0x10: TNDXB1
+     endc
+     hDef5: case @.F:Val and 0x20 of
+      0x20: TNDXB1
+     endc
+     inf7: case @.F:Val and 0x40 of
+      0x40: struc pas
+        Cnt: TNDXB1
+        Tbl: array[@.Cnt:Val] of TConstAddInfo0A_7Rec
+       ends
+     endc
+     inf8: case @.F:Val and 0x80 of
+      0x80: struc pas
+        V: TNDXB1
+        V1: TNDXB1
+        V2: TNDXB1
+       ends
+     endc
+     s9: case @.F:Val and 0x100 of
+      0x100: TStrNDXB1
+     endc
+     s10: case @.F:Val and 0x200 of
+      0x200: TStrNDXB1
+     endc
+     hDef11: case @.F:Val and 0x400 of
+      0x400: TNDXB1
+     endc
+     hDef12: case @.F:Val and 0x800 of
+      0x800: TNDXB1
+     endc
+     hDef13: case @.F:Val and 0x1000 of
+      0x1000: TNDXB1
+     endc
+     hDef14: case @.F:Val and 0x2000 of
+      0x2000: TNDXB1
+     endc
+     hDef15: case @.F:Val and 0x4000 of
+      0x4000: TNDXB1 //MSIL 9 only?
+     endc
+    ends
+   0x0C: struc pas
+     hDef: TNDXB1
+     V1: TNDXB1
+     V2: TNDXB1
+    ends
+  %$IF (Ver>=9)and IsDelphi;
+   0x0D: struc pas
+     hDef: TNDXB1
+     S: TStrNDXB1
+    ends
+  %$END
+  %$IF (Ver>=12)and IsDelphi;
+   0x10: struc pas
+     V0: TNDXB1
+     V1: TNDXB1
+     V2: TNDXB1
+    ends
+  %$IF (Ver>=17)and IsDelphi;
+   0x11: struc pas
+     hDef: TNDXB1
+     V: TNDXB1
+    ends
+  %$END
+   0x12: struc pas //appears for TX = type TY
+     V0: TNDXB1
+     V1: TNDXB1
+    ends
+   0x13: struc pas
+     V0: TNDXB1
+     V1: TNDXB1
+     V2: TNDXB1
+     ExtSym: TStrNDXB1 // $EXTERNALSYM
+     ExtSym1: TStrNDXB1 //??
+     ObjTN: TStrNDXB1 // $OBJTYPENAME
+    ends
+   0x14: struc pas //qualifier path for aux field
+     //which is created now when property read/write/etc
+     //references a field inside record
+     V0: TNDXB1
+     V1: TNDXB1
+     Cnt: TNDXB1
+     Tbl: array[@.Cnt:Val]of struc pas
+       U0: TNDXB1
+       U1: TNDXB1
+       U2: TNDXB1
+       Sym: TStrNDXB1
+     ends
+    ends
+  %$END
+  %$IF (Ver>=15)and IsDelphi;
+   0x15: struc pas
+     hDef: TNDXB1
+     V0: TNDXB1
+     V1: TNDXB1
+    ends
+  %$END
+  endc
+ends
+
+%$IF (Ver>=15)and IsDelphi;
+const
+  caiStop=0x16;
+%$ELSIF (Ver>=12)and IsDelphi;
+const
+  caiStop=0x15;
+%$ELSIF (Ver>=9)and IsDelphi;
+const
+  caiStop=0x0F;
+%$ELSE
+const
+  caiStop=0x0D;
+%$END
+
+type
+
+TConstAddInfo array of TConstAddInfoRec ?@.Tag>=caiStop!byte; //= ==> Ok,> ==> Error
+
+%$ELSE
+TConstAddInfo struc pas
+  B01: Byte
+  Ndx: TNDXB1
+  B02: Byte
+  B06: Byte
+ends
+%$END
+
+%$END
+
+%$IF (Ver>=8)and IsDelphi;
+ Tbyte1 byte():assert[@=1]
+%$END
+
+%$IF (Ver>=12)and IsDelphi;
+/*
+ TChar21 Char():assert[(@='!') //override
+   or (@='a') //override abstract?
+   or (@=' ') //static
+ ]
+
+ TOverloadF try
+  Overload: TChar21
+  None: void
+ endt
+*/
+/*
+ TInlineRec struc pas
+  Tag: Byte
+  V: TNDXB1
+ ends:assert[(@.Tag=4/*Inline*/)or(@.Tag=2/*Class helpers*/)]
+
+ TInlineZRec struc pas
+  Tag: Byte
+  B80: Byte //or 0
+  B20: Byte
+ ends:assert[(@.Tag=0)or(@.Tag=0x80)or(@.Tag=0x84)]
+
+ TInlineF try
+  Inline: TInlineRec
+  Z: TInlineZRec
+  None: void
+ endt
+*/
+
+ TInlineF array of byte ?not((@=0x80)or(@=0x84)or
+   (@=4)or(@=2)or(@=0x20)or(@=0)or(@=0x18)or
+  %$IF (Ver>=13)and IsDelphi;
+   (@=1)or
+  %$END
+  %$IF (Ver>=15)and IsDelphi;
+   (@=0x38)or //& operator
+   (@=0x28)or //&op_Equality in debug mode
+  %$END
+  %$IF (Ver>=16)and IsDelphi;
+   (@=0x42)or
+   (@=0x22)or
+   (@=0x9)or //auto added from Helper
+  %$END
+  %$IF (Ver>=17)and IsDelphi and(iOs<>0);
+   //in fact ARC support
+   (@=0x47)or //unsafe
+   (@=0x4F)or //unsafe virtual?
+  %$END
+   (@=8)or(@=0x10)or
+  //from TOverloadF:
+   (@='!') //override
+   or (@='a') //override abstract?
+   or (@=' ') //static
+   )!void;
+
+%$END
+
+
+TProcArg struc pas
+  Tag: TProcArgTag
+  D: case @.Tag of
+    arSetDeft: TSetDeftInfo
+    arEmbeddedProcEnd: void //For Ver=5
+//   %$IF (Ver>=7)and IsDelphi;
+   %$IF gen7;
+    TDCU30RecTag.drConstAddInfo: TConstAddInfo
+   %$END
+   %$IF (Ver>=7)and IsDelphi;
+    TDCU30RecTag.drProcAddInfo: TNDXB1
+   %$END
+   %$IF (Ver>=8)and IsDelphi;
+    TDCU30RecTag.drEmbeddedProcStart: void
+   %$END
+%$IF (Ver>=10)and IsDelphi;
+    arCopyDecl: TNDXB1 //index of the address to copy from
+  %$IF (Ver>=12)and IsDelphi;
+   // arCopyDecl=TDCU30RecTag.arCopyDecl: TNDXB1
+    TDCU30RecTag.drA5Info: struc pas
+     // bA6: Byte;
+     // X: TNDXB1
+     ends
+    TDCU30RecTag.drA6Info: TDCU30ListC //void
+    TDCU30RecTag.drA7Info: struc pas
+      V1: TNDXB1
+      Len: TNDXB1
+      Tbl: array[@.Len:Val]of TNDXB1
+     ends
+    TDCU30RecTag.drA8Info: TNDXB1
+  %$END
+  %$IF (Ver>=16)and IsDelphi;
+    arFinalFlag: TNDXB1
+  %$END
+    0x80..0xA2,0xA4..0xFF: void
+%$ELSE
+    0x80..0xFF: void
+%$END
+   else struc pas
+    Name: TNameStr
+    D: case @@@.Tag of
+      arLocType: TTypeInf
+      arProperty: TPropInfo
+      arConst: TConstDef
+      arLabel: struc pas
+        X: TNDXB1
+       %$IF (Ver>=8)and IsDelphi;
+        Y: TNDXB1
+       %$END
+       %$IF (Ver>=12)and IsDelphi;
+        B3: TNDXB1
+       %$END
+       ends
+      arMethod: struc pas
+        Flags: TNDXB1 //public=0x2,protected=0x4,published=0xA, (for Ver<8)
+          //default property=0x20,virtual=0x40,$80=dynamic, class=0x01
+       %$IF (Ver>=8)and IsDelphi;
+        FlagsEx: TNDXB1 //For Ver>=8 public=0x1,protected=0x2,published=0x5,class=0x10
+       %$END
+       %$IF (Ver>=12)and IsDelphi;
+        B3: TNDXB1
+       %$END
+        hDT: TNDXB1
+        Ndx: TNDXB1
+       %$IF MSIL; //(Ver>=8)and IsDelphi;
+        B1: case (@.Ndx.b1.V)exc 1 of
+         0: void
+         else
+          try
+           Is1:Tbyte1
+           Els: void
+          endt
+         endc
+       %$END
+       %$IF (Ver>=7)and IsDelphi;
+        hImp: TNDXB1
+       %$ELSE
+        hImp: case @@@.Name[0] of
+         0: TNDXB1
+        endc //for property P:X read Proc{Implemented in parent class}
+       %$END
+       %$IF (Ver>=12)and IsDelphi;
+//        %$IF (Ver>=13)and IsDelphi;
+//         ClassF: case @.FlagsEx:Val and 0x1F of
+//           0x18: TNDXB1 //0x10 - class static; 0x18 - class procedure
+//         endc
+//        %$END
+        fInline: TInlineF
+        //fOverload: TOverloadF
+       %$END
+      ends
+    %$IF (Ver>=7)and IsDelphi;
+      arConstr,arDestr: struc pas
+        Flags: TNDXB1 //public=0x2,protected=0x4,published=0xA,
+          //default property=0x20,virtual=0x40,$80=dynamic
+       %$IF (Ver>=8)and IsDelphi;
+        FlagsEx: TNDXB1 //For Ver>=8 public=0x1,protected=0x2,published=0x5,class=0x10
+       %$END
+        hDT: TNDXB1
+        Ndx: TNDXB1
+        X: TNDXB1
+       %$IF (Ver>=12)and IsDelphi;
+        BF: Byte
+        B3: TNDXB1
+       %$END
+      ends
+    %$END
+    %$IF (Ver>=13)and IsDelphi;
+      arAnonymousBlock: struc pas
+        B10: TNDXB1
+        B0: TNDXB1
+      ends
+    %$END
+      else struc pas
+        Flags: TNDXB1 //public=0x2,protected=0x4,published=0xA,
+          //default property=0x20,virtual=0x40,$80=dynamic
+          //XE4: 0x40 - [REF]
+       %$IF (Ver>=8)and IsDelphi;
+        FlagsEx: TNDXB1 //For Ver>=8 public=0x1,protected=0x2,published=0x5,class=0x10
+       %$END
+       %$IF (Ver>=12)and IsDelphi;
+        B3: TNDXB1
+        %$IF (Ver>=17)and IsDelphi;
+         Decorator: case @.Flags:Val and 0x40 of
+          0x40: ulong
+         endc
+        %$END
+       %$END
+        hDT: TNDXB1
+        Ndx: TNDXB1
+      ends
+    endc
+   ends
+  endc
+ends:displ=('[',ADDR(&@),']',@)
+
+TProcArgList array of TProcArg ?@.Tag=TProcArgTag.arStop!Char;
+
+//B0: TNDXB1//Byte
+//Sz: TNDXB1
+
+%$IF (Ver>=14)and IsDelphi;
+TProcData(B1) struc pas
+%$ELSE
+TProcData struc pas
+%$END
+ %$IF Ver>2;
+  VProc: TNDXB1
+ %$END
+  hDTRes: TNDXB1
+/*!!!Check
+ %$IF (Ver>=14)and IsDelphi;
+   hClass: case (@.VProc:val=0x4F)and(@:B1 and 0x40<>0) of
+     0: TNDXB1
+    endc //For methods
+   Args: case (@.VProc:val=0x4F)and(@:B1 and 0x40<>0) of
+     0: TProcArgList
+    endc
+ %$ELSE
+*/
+  %$IF (Ver>=8)and IsDelphi;
+   hClass: TNDXB1 //For methods
+  %$END
+   Args: TProcArgList
+// %$END
+ends
+
+/*
+TProcDataD struc pas
+  D: ulong
+  Dat: TProcData
+ends
+
+TProcInf struc pas
+  BProc: Byte
+  D: case @.BProc of
+    0: struc pas
+        B0: Byte
+        Vp: TNDXB1
+      ends
+    1: struc pas
+        B0: Byte
+        D: case @.B0 of
+          3: TProcDataD
+        else Word
+        endc
+      ends
+    else TProcDataD
+  endc
+ends
+
+TEmbeddedProcInf struc pas
+//  Tag:TDCU30RecTag
+//  Name: Str
+  BProc: Byte
+  D: case @.BProc of
+    0: struc pas
+        B0: Byte
+        Vp: TNDXB1
+      ends
+    1: struc pas
+        B0: Byte
+        W: Word
+      ends
+    else TProcData
+  endc
+ends
+*/
+
+/*
+TProcInf(NoName) struc pas
+  BProc: Byte
+  D: case @:NoName of
+    1: case @@.BProc of
+       0: struc pas
+         B0: Byte
+         Vp: TNDXB1
+       ends
+       1: struc pas
+           B0: Byte
+           B1: Byte
+           Sz: TNDXB1
+         ends
+  %$IF Ver>=6;
+       3: struc pas
+           B0: Byte
+           B2: Byte
+           B1: Byte
+           Sz: TNDXB1
+         ends
+  %$END
+    endc
+  else struc pas
+     D1: case @@@.BProc of
+       0: void
+       1: struc pas
+           B0: Byte
+           D: case @.B0 and 1 of
+             1: ulong
+           endc
+         ends
+       else ulong
+     endc
+     Dat: TProcData
+   ends
+  endc
+ends
+*/
+
+TProcInf(NoName) struc pas
+  NF: TNameFDecl
+  B0: TNDXB1//Byte
+  Sz: TNDXB1
+ %$IF (Ver>=14)and IsDelphi;
+  X: Byte//TNDXB1
+ %$END
+  D: case @:NoName of
+    1: void
+  else
+  %$IF (Ver>=14)and IsDelphi;
+    TProcData(@@.NF.B1:val)
+  %$ELSE
+    TProcData
+  %$END
+  endc
+ends
+
+%$IF (Ver>=8)and IsDelphi;
+TSysProcInf struc pas
+//  NF: TNameFDecl
+  B80: Byte
+  H: TNDXB1
+ %$IF (Ver>=12)and IsDelphi;
+  B3: TNDXB1
+ %$END
+  B0: TNDXB1//Byte
+  Sz: TNDXB1
+ %$IF (Ver>=14)and IsDelphi;
+  X: Byte//TNDXB1
+  D: TProcData(0)
+ %$ELSE
+  D: TProcData
+ %$END
+ends
+%$ELSE
+TSysProcInf struc pas
+  B80: Byte
+  H: TNDXB1
+ends
+%$END
+
+/*
+TEmbeddedInf struc pas
+  Tag:TDCU30RecTag
+  Name: Str
+  D: case @.Tag of
+    drType: TTypeInf
+    drTypeP: TTypePInf
+    drVar,drThreadVar: TVarInf
+    drVarC: TVarInf
+    drProc: TProcInf((@@.Name[0]=0)or(@@.Name='.')) //TEmbeddedProcInf
+    drSysProc: TSysProcInf
+    drResStr: TVarInf //TResStrDef
+  endc
+ends
+
+TEmbeddedList array of TEmbeddedInf ?
+  /*@.Tag<>TDCU30RecTag.drProc*/
+  @.Tag=TDCU30RecTag.drEmbeddedProcEnd!TDCU30RecTag;
+*/
+
+TEmbeddedList forward
+
+//// DEFINITIONS
+
+TTypeDefBase struc pas
+  RTTISz: TNDXB1 //Size of RTTI for type, if available
+  Sz: TNDXB1
+  hAddr: TNDXB1 //The # of definition of the type
+ %$IF MSIL; //(Ver>=8)and IsDelphi;
+  X: TNDXB1
+  X1: TNDXB1
+//  X2: TNDXB1
+ %$ELSIF (Ver>=9)and IsDelphi;
+  X: TNDXB1
+ %$END
+ends
+
+%$IF (Ver>=8)and IsDelphi;
+TTypeDefBase0 struc pas
+  RTTISz: TNDXB1 //Size of RTTI for type, if available
+/* %$IF (Ver>=12)and IsDelphi;
+  RTTISz: Byte //M.b. something else
+ %$ELSE
+  RTTISz: TNDXB1 //Size of RTTI for type, if available
+ %$END*/
+  Sz: TNDXB1
+  V: TNDXB1
+ends
+%$ELSE
+TTypeDefBase0 TTypeDefBase
+%$END
+
+%$IF (Ver>=14)and IsDelphi;
+TVoidDefInf struc pas
+  Base: TTypeDefBase
+ /*
+  %$IF (Ver>=15)and IsDelphi;
+  X: Byte
+  %$ELSE
+  X: TNDXB1 //ַהוסü ל.ב. עמזו, םמ םאהמ ןנמגונטעü
+  %$END
+  */
+  X: Byte//TNDXB1
+ends
+%$ELSE
+TVoidDefInf TTypeDefBase
+%$END
+
+TParentInterfaceInf forward
+
+TRecDefInf struc pas
+  Base: TTypeDefBase
+  B2: Byte
+ %$IF MSIL;//(Ver>=8)and IsDelphi;
+  %$IF (Ver>=10)and IsDelphi;
+   B1: Byte
+   //X0: Byte
+  %$END
+  X: TNDXB1
+  I: TParentInterfaceInf
+ %$ELSIF (Ver>=9)and IsDelphi;
+  %$IF (Ver>=10)and IsDelphi;
+   B1: Byte
+   X0: Byte
+  %$END
+  X: TNDXB1
+  %$IF (Ver>=12)and IsDelphi;
+   X1: TNDXB1
+   Z2: TNDXB1
+   %$IF (Ver>=13)and IsDelphi;
+    Z3: TNDXB1
+   %$END
+  %$END
+ %$END
+  Fields: TProcArgList
+//  Fields: array[22]of TProcArg
+ends
+
+TPtrDefInf struc pas
+  Base: TTypeDefBase
+  hRefDT: TNDXB1
+ %$IF (Ver>=12)and IsDelphi;
+  X0: TNDXB1
+ %$END
+ends
+
+TRangeDefInf struc pas
+  Base: TTypeDefBase
+  hDTBase: TNDXB1
+  Lo: TNDXB1
+  Hi: TNDXB1
+ %$IF (Ver>=8)and IsDelphi;
+// %$ELSIF (Ver=8)and IsDelphi;
+  B: TNDXB1
+ %$ELSE
+  B: Byte
+ %$END
+ends
+
+TEnumDefInf struc pas
+  Base: TTypeDefBase
+  hDTBase: TNDXB1
+ %$IF (Ver>=12)and IsDelphi;
+  X1: TNDXB1
+ /* X1: case @.RTTISz:Val=0 of
+    0: TNDXB1
+   endc*/
+ %$END
+  Ndx: TNDXB1
+  Lo: TNDXB1
+  Hi: TNDXB1
+ %$IF (Ver>=8)and IsDelphi;
+// %$ELSIF (Ver=8)and IsDelphi;
+  B: TNDXB1
+ %$ELSE
+  B: Byte
+ %$END
+ends
+
+TSetDefInf struc pas
+  Base: TTypeDefBase
+  BStart: Byte //0-based start byte number
+  hDTBase: TNDXB1
+ends
+
+TFloatKind enum byte (fkReal48=0, fkSingle=1, fkDouble=2, fkExtended=3, 
+  fkComp=4, fkCurrency=5)
+
+TFloatDefInf struc pas
+  Base: TTypeDefBase
+  Kind: TFloatKind
+ends
+
+TArrayDefInf struc pas
+  Base: TTypeDefBase
+  B1: Byte
+  hDTNdx: TNDXB1
+  hDTEl: TNDXB1
+ %$IF MSIL; //(Ver>=8)and IsDelphi;
+  X: TNDXB1
+ %$END
+ends
+
+TShortStrDefInf struc pas
+  Base: TTypeDefBase
+  B1: Byte
+  V: TNDXB1
+  Ndx1: TNDXB1
+ %$IF (Ver>=12)and IsDelphi;
+  CodePage: TNDXB1
+ %$END
+ends
+
+TFileDefInf struc pas
+  Base: TTypeDefBase
+  hBaseDT: TNDXB1
+ends
+
+TStringDefInf struc pas
+  Base: TTypeDefBase
+  B0: Byte
+  B1: TNDXB1//Byte
+  hBaseDT: TNDXB1
+ %$IF (Ver>=12)and IsDelphi;
+  CodePage: TNDXB1
+ %$END
+ends
+
+TVariantDefInf struc pas
+  Base: TTypeDefBase
+%$IF Ver>2;
+  B: byte
+%$END
+ends
+
+%$IF Ver=2;
+
+TProcTypeDefInf struc pas
+  Base: TTypeDefBase
+  hDTRes: TNDXB1
+  Bj: TDCU30RecTag
+  Args: case @.Bj of
+    drEmbeddedProcStart: TProcArgList
+  endc
+ends
+
+%$ELSE
+
+TProcTypeAddArg TProcArg
+
+TProcTypeDefInf struc pas
+  Base: TTypeDefBase
+  NDX0: TNDXB1//B0: Byte
+  hDTRes: TNDXB1
+ /* AddB: case @.B0 and 0x08 of
+    0x08: Byte
+  endc*/
+  AddB: array of TProcTypeAddArg ?(@.Tag=106/*'j'*/)or(@.Tag=99/*'c'*/)!void;
+  Bj: TDCU30RecTag
+  Args: case @.Bj of
+    drEmbeddedProcStart: TProcArgList
+  endc
+ends
+
+%$END
+
+TObjVMTDefInf struc pas
+  Base: TTypeDefBase
+  hObjDT: TNDXB1
+  VMTSz: TNDXB1
+ %$IF MSIL; //(Ver>=8)and IsDelphi;
+  X2: TNDXB1
+ %$END
+ends
+
+TObjDefInf struc pas
+  Base: TTypeDefBase
+  B03: Byte
+  %$IF (Ver>=10)and IsDelphi;
+  BX: TNDXB1 //or m.b. array[@.BxLen]of byte
+  %$END
+  %$IF (Ver>=14)and IsDelphi;
+  BX1: byte
+  %$END
+  hParent: TNDXB1
+  VMTOfs: TNDXB1 //-1=FE => no VMT
+  hVMT: TNDXB1 //index in address table
+  VMCnt: TNDXB1
+  %$IF (Ver>=15)and IsDelphi;
+  BX2: TNDXB1
+  %$END
+  Args: TProcArgList
+ends
+
+TParentInterfaceRec struc pas
+  hIntf: TNDXB1
+ %$IF MSIL and(Ver>=10)and IsDelphi;
+   mX1: TNDXB1
+   mMCnt: TNDXB1
+ %$END
+  Cnt: TNDXB1 //Member count
+ %$IF MSIL; //(Ver>=8)and IsDelphi;
+  Member: array[@.Cnt:Val] of struc pas
+    N: TNDXB1
+    hMember: TNDXB1
+   ends
+ %$ELSIF (Ver>=10)and IsDelphi;
+/*
+ %$END
+ %$IF (Ver>=10)and IsDelphi;
+ */
+   X1: TNDXB1
+   MCnt: TNDXB1
+ %$IF (Ver>=13)and IsDelphi;
+    X3: TNDXB1
+    X4: TNDXB1
+    Match: array[@.MCnt:Val]of struc pas
+      B: Byte
+      Name: str
+      N: TNDXB1
+      I: TNDXB1
+     ends
+  %$END
+ %$END
+ends
+
+TParentInterfaceInf struc pas
+  ICnt: TNDXB1
+  ITbl: array[@.ICnt:Val] of TParentInterfaceRec//Byte
+ends
+
+TClassDefInf struc pas
+  Base: TTypeDefBase
+  %$IF (Ver>=10)and IsDelphi;
+  BX: byte//TNDXB1
+  %$END
+  %$IF (Ver>=12)and IsDelphi;
+  %$IF (Ver>=15)and IsDelphi;
+  BX1: Byte
+  %$ELSE
+  BX1: TNDXB1 //ַהוסü ל.ב. עמזו, םמ םאהמ ןנמגונטעü
+  %$END
+  BX2: byte//TNDXB1
+  %$END
+  hParent: TNDXB1
+ %$IF (Ver>=13)and IsDelphi;
+  BX3: TNDXB1
+ %$END
+  InstBase: TTypeDefBase0
+  VMCnt: TNDXB1//B00: Byte
+  NdxFE: TNDXB1//BFE: Byte
+  Ndx00a: TNDXB1//B00a: Byte
+ %$IF (Ver>=8)and IsDelphi;
+  B04: TNDXB1
+ %$ELSE
+  B04: Byte
+ %$END
+%$IF Ver>2;
+/*
+  B00b: Byte //always 0 or 2 and was 4 in CorbaObj.dcu
+  DAdd: case @.B00b=0 of
+      0: struc pas
+        B0: Byte
+        B1: Byte
+       ends
+    endc
+*/
+  I: TParentInterfaceInf
+%$END
+  Args: TProcArgList
+//  Args: array[6]of TProcArg
+ends
+
+%$IF (Ver>=8)and IsDelphi;
+
+TMetaClassDefInf struc pas
+  Base: TTypeDefBase
+  %$IF (Ver>=10)and IsDelphi;
+  BX: byte//TNDXB1
+  %$END
+  %$IF (Ver>=12)and IsDelphi;
+  %$IF (Ver>=15)and IsDelphi;
+  BX1: Byte
+  %$ELSE
+  BX1: TNDXB1 //ַהוסü ל.ב. עמזו, םמ םאהמ ןנמגונטעü
+  %$END
+  BX2: byte//TNDXB1
+  %$END
+  hParent: TNDXB1
+ %$IF (Ver>=13)and IsDelphi;
+  BX3: TNDXB1
+ %$END
+  InstBase: TTypeDefBase0
+  VMCnt: TNDXB1//B00: Byte
+  NdxFE: TNDXB1//BFE: Byte
+  Ndx00a: TNDXB1//B00a: Byte
+ %$IF (Ver>=8)and IsDelphi;
+  B04: TNDXB1
+ %$ELSE
+  B04: Byte
+ %$END
+/*
+  hParent: TNDXB1
+  InstBase: TTypeDefBase0
+  VMCnt: TNDXB1//B00: Byte
+  NdxFE: TNDXB1//BFE: Byte
+  Ndx00a: TNDXB1//B00a: Byte
+ %$IF (Ver>=8)and IsDelphi;
+  B04: TNDXB1
+  %$IF (Ver>=10)and IsDelphi;
+  BX: TNDXB1
+  %$IF (Ver>=12)and IsDelphi;
+  BX1: TNDXB1
+  BX2: TNDXB1
+  %$IF ((Ver<12)or(Ver>=13))and IsDelphi;
+   BX3: TNDXB1
+  %$END
+  %$END
+  %$END
+ %$ELSE
+  B04: Byte
+ %$END
+*/
+%$IF Ver>2;
+  //%$IF (Ver<14)or not IsDelphi;
+  hCl: TNDXB1  //Only this 2 fields are added in comparison with TClassDefInf
+  X: TNDXB1
+  //%$END
+  I: TParentInterfaceInf
+%$END
+  Args: TProcArgList
+ends
+
+%$END
+
+TGUID struc
+  ulong D1
+  word D2
+  word D3
+  array[8] of byte D4
+ends
+
+TInterfaceProcArg struc pas
+  Tag: TProcArgTag
+  D: case @.Tag and 0x80 of
+    0x80:
+   %$IF gen7;
+    case @@.Tag of
+     TDCU30RecTag.drConstAddInfo: TConstAddInfo
+    else void
+    endc
+   %$ELSE
+    void
+   %$END
+   else struc pas
+    Name: Str
+    D: case @@@.Tag of
+//      arLocType: TTypeInf
+      arProperty: TPropInfo
+      else struc pas
+        Ndx1: TNDXB1
+      %$IF (Ver>=8)and IsDelphi;
+        B1: TNDXB1
+       %$IF (Ver>=12)and IsDelphi;
+        X: TNDXB1
+       %$END
+      %$END
+        hDT: TNDXB1
+        NDXB: TNDXB1
+        Ndx: TNDXB1
+      ends
+    endc
+   ends
+  endc
+ends
+
+TInterfaceProcArgList array of TInterfaceProcArg ?@.Tag=TProcArgTag.arStop!Char;
+
+TDispInterfaceProcArg struc pas
+  Tag: TProcArgTag
+  D: case @.Tag and 0x80 of
+    0x80:
+   %$IF gen7;
+    case @@.Tag of
+     TDCU30RecTag.drConstAddInfo: TConstAddInfo
+    else void
+    endc
+   %$ELSE
+    void
+   %$END
+   else struc pas
+    Name: Str
+    D: struc pas
+        Ndx1: TNDXB1
+      %$IF (Ver>=8)and IsDelphi;
+        B1: TNDXB1
+      %$END
+      %$IF (Ver>=12)and IsDelphi;
+        B3: TNDXB1
+      %$END
+        hDT: TNDXB1
+        NDXB: TNDXB1
+        Ndx: TNDXB1
+      ends
+   ends
+  endc
+ends
+
+TDispInterfaceProcArgList array of TDispInterfaceProcArg ?@.Tag=TProcArgTag.arStop!Char;
+
+TInterfaceDefInf struc pas
+  Base: TTypeDefBase
+  %$IF (Ver>=12)and IsDelphi;
+  BX: byte//TNDXB1
+  %$END
+  hParent: TNDXB1
+  VMCnt: TNDXB1
+  GUID: TGUID
+  B: Byte //02 for all interfaces, 06 for dispinterface
+ %$IF (Ver>=8)and IsDelphi;
+  %$IF (Ver>=13)and IsDelphi;
+  BY: TNDXB1
+  %$END
+  Sz: TNDXB1
+  D: array[@.Sz:Val] of struc pas
+     X: TNDXB1
+     Z: TNDXB1
+    %$IF MSIL and(Ver>=10)and IsDelphi;
+     X1: TNDXB1
+     Z1: TNDXB1
+    %$END
+   ends
+ %$END
+  Args: case @.B and 0x04 of
+    0: TInterfaceProcArgList
+  else TDispInterfaceProcArgList
+  endc
+ends
+
+
+TCodeBlockInf struc pas
+  Sz: TNDXB1
+  D: raw[@.Sz:Val]
+ends
+
+TFixUpRec struc pas
+  dOfs: TNDXB1 //From the start of the previous one
+  B1: byte
+  N2: TNDXB1
+ends
+
+TFixUpData struc pas
+  Sz: TNDXB1
+  D: array[@.Sz:Val] of TFixUpRec
+ends
+
+TCodeLinesRec struc pas
+  dL: TNDXB1
+  dOfs: TNDXB1
+ends
+
+TCodeLinesData struc pas
+  Sz: TNDXB1
+  D: array[@.Sz:Val] of TCodeLinesRec
+ends
+
+TLineRange struc pas
+  Line0: TNDXB1
+  LineNum: TNDXB1
+  hFile: TNDXB1
+ends
+
+TLinNumData struc pas
+  Sz: TNDXB1
+  Ranges: array[@.Sz:Val] of TLineRange
+ends
+
+TStrucScopeRec struc pas //
+  hType: TNDXB1
+  hVar: TNDXB1 //<>0 for With
+  Ofs: TNDXB1 //usually=0
+  LnStart: TNDXB1 //1st member line
+  LnCnt: TNDXB1 //total member lines
+ends
+
+TStrucScopeData struc pas
+  Sz: TNDXB1
+  D: array[@.Sz:Val] of TStrucScopeRec
+ends
+
+TSymbolRefRec struc pas
+  hSym: TNDXB1
+  hMember: TNDXB1 //for symbols - type members, else - 0
+  Sz: TNDXB1
+  hDef: TNDXB1 //index of symbol definition in the L array
+  L: array[@.Sz:Val] of TNDXB1
+ends
+
+TSymbolRefData struc pas
+  Sz: TNDXB1
+  NPrimary: TNDXB1 //# of Not member definitions
+  D: array[@.Sz:Val] of TSymbolRefRec
+ends
+
+%$IF Ver=3;
+TUnitFlagsData struc pas
+  Flags: TNDXB1 //0x500 - WEAKPACKAGEUNIT
+ends
+%$ELSIF Ver>3;
+TUnitFlagsData struc pas
+  Flags: TNDXB1 //0x500 - WEAKPACKAGEUNIT
+%$IF (Ver>9)and(IsDelphi);
+  Flags1: TNDXB1
+%$END
+  Priority: TNDXB1 //Always 0x1E
+ends
+%$END
+
+%$IF (Ver>=15)and IsDelphi and mode64;
+TLocVarFrameCode enum byte (
+  RAX,RCX,RDX,RBX/*!*/,RSP,RBP,RSI/*!*/,RDI, R8,R9,R10,R11,R12,R13,R14,R15, //guess values
+   _end_=0x7F
+)
+%$ELSE
+TLocVarFrameCode enum byte (
+  EAX,EDX,ECX,EBX,ESI,EDI,EBP,
+ //Register parts:
+  AL,DL,CL,BL, AH,DH,CH,BH, AX,DX,CX,BX, _end_=0x7F
+)
+%$END
+
+TLocVarFrame TNDXB1():displ=(valname((@ as TNDXB1):Val,TLocVarFrameCode),'{',@,'}')
+
+TLocVarInf0 struc pas //DoDi's info
+  sym: TNDXB1 //Symbol # in the symbol table, 0 - proc data end
+  ofs: TNDXB1 //Offset in procedure code
+  frame: TLocVarFrame //-1(0x7f)-symbol end, else - symbol start 0-EAX, 1-EDX,
+    //2-ECX, 3-EBX, 4-ESI...
+    //Size of local variables for procedures (for SUB ESP,Size)
+ends
+
+%$IF (Ver>=15)and IsDelphi and mode64;
+TLocVarProcInf struc pas
+  sym: TNDXB1 //Symbol # in the symbol table, 0 - proc data end
+  ofs: TNDXB1
+  LocSz: TNDXB1 //Size of local variables for procedures (for SUB ESP,LocSz-LocSz1)
+  V0: TNDXB1
+  V1: TNDXB1
+  V2: TNDXB1
+  V3: TNDXB1
+  LocSz1: TNDXB1 //very often
+  LocSz1a: TNDXB1//EQ
+ends:assert[(@.Ofs:Val and 0x7=0)and(@.LocSz:Val and 0x7=0)
+  and(@.V0:Val and 0x7=0)and(@.V1:Val and 0x7=0)/*and(@.V2:Val and 0x7=0)*/
+  and(@.V3:Val and 0x7=0)and(@.LocSz1:Val and 0x7=0)and(@.LocSz1a:Val and 0x7=0)]
+  //In fact we should check that sym is a procedure
+  //but we try to use this heuristics instead
+
+TLocVarInf try
+  P: TLocVarProcInf
+  V: TLocVarInf0
+endt
+%$ELSE
+TLocVarInf TLocVarInf0
+%$END
+
+
+/*
+TLocVarInf struc pas //DoDi's info
+  sym: TNDXB1 //Symbol # in the symbol table, 0 - proc data end
+  ofs: TNDXB1 //Offset in procedure code
+  frame: TLocVarFrame //-1(0x7f)-symbol end, else - symbol start 0-EAX, 1-EDX,
+    //2-ECX, 3-EBX, 4-ESI...
+    //Size of local variables for procedures (for SUB ESP,Size)
+  %$IF (Ver>=15)and IsDelphi and mode64;
+  Extra: case ((@.frame as TNDXB1):Val and 0x7=0)and(@.Ofs:Val and 0x7=0) of
+//  Extra: case (@.sym:Val=0)or((@.frame as TNDXB1):Val>=0x10)and((@.frame as TNDXB1):Val and 0xF=0) of
+//  Extra: case (@.sym:Val=0)or(@.frame:Val and 0xF=0) of
+   0: void
+   else struc pas
+    sym: TNDXB1
+    ofs: TNDXB1
+    frame: TNDXB1
+    sym1: TNDXB1
+    ofs1: TNDXB1
+    frame1: TNDXB1
+   ends
+  endc
+  %$END
+/*
+  %$IF (Ver>=15)and IsDelphi;
+  frame: Byte
+  %$ELSE
+  frame: TNDXB1 //-1(0x7f)-symbol end, else - symbol start 0-EAX, 1-EDX,
+    //2-ECX, 3-EBX, 4-ESI...
+  %$END
+  */
+ends
+*/
+
+TLocVarTbl struc pas
+  Sz: TNDXB1
+  %$IF (Ver>=15)and IsDelphi and mode64;
+  //D: array[@.Sz:Val] of TLocVarInf takes 2 when ((@.frame as TNDXB1):Val and 0x7=0)and(@.Ofs:Val and 0x7=0) exc 1;
+  D: array[@.Sz:Val] of TLocVarInf takes 1+(valid @.P);
+  %$ELSE
+  D: array[@.Sz:Val] of TLocVarInf
+  %$END
+ends
+
+%$IF (Ver>=7)and IsDelphi;
+/*
+TUnitAddInfo struc pas
+  D: array of char,'c';
+ends
+%$ELSIF (Ver>=8)and IsDelphi;
+*/
+TUnitAddInfo struc pas
+  NF: TNameFDecl
+  B: TNDXB1
+  Sub: TDCU30ListC
+ends
+%$END
+
+%$IF (Ver>=12)and IsDelphi;
+TDelayedImpRec struc pas
+  N: long
+  NDX: TNDXB1
+ends
+
+TDynArrayInf struc pas
+  Base: TTypeDefBase
+  hBaseDT: TNDXB1 //Should be array[0..-1]of ...
+  X0: TNDXB1
+ends
+
+TTemplateArgInf struc pas
+  Base: TTypeDefBase
+  Cnt: TNDXB1
+  Args: array[@.Cnt:Val]of TNDXB1
+  V5: TNDXB1
+ends
+
+TTemplateCall struc pas
+  Base: TTypeDefBase
+ %$IF (Ver>=14)and IsDelphi;
+  X: Byte//TNDXB1
+ %$END
+  hDT: TNDXB1 //The type with `
+  Cnt: TNDXB1
+  Args: array[@.Cnt:Val]of TNDXB1
+  hDTFull: TNDXB1 //The type with actual args in <>
+ends
+%$END
+
+%$IF (Ver>=8)and IsDelphi;
+TORec struc pas
+%$IF (Ver>=12)and IsDelphi;
+  Name: str
+  DW: long
+  N: int
+  Args: TDCU30ListC //TB0ImpRec
+%$ELSE
+  B: TNDXB1
+%$END
+ends
+
+
+TStrConstRec struc pas
+//%$IF (Ver<10);
+  NF: TNameFDecl
+  V: TNDXB1
+  Sz: TNDXB1
+ %$IF (Ver>=14)and IsDelphi;
+  X: byte//TNDXB1
+ %$END
+/*
+%$ELSE
+  NF: TNameFDecl
+  hDT: TNDXB1
+  L: Byte //drStop1='c' - some list
+%$END
+*/
+ends
+%$END
+
+
+%$IF (Ver>=7)and IsDelphi;
+TInfo98Rec struc pas
+  B4: TNDXB1
+  V: TNDXB1
+ends
+%$END
+
+
+//Main Stream Record
+TDCU30Rec struc pas
+  Tag: TDCU30RecTag
+  D: case @.Tag of
+      drVoid: TVoidDefInf
+      drRecDef: TRecDefInf
+      drPtrDef: TPtrDefInf
+      drRangeDef,drChRangeDef,drBoolRangeDef,drWCharRangeDef,
+      drWideRangeDef: TRangeDefInf
+      drEnumDef: TEnumDefInf
+      drFloatDef: TFloatDefInf
+      drSetDef: TSetDefInf
+      drArrayDef: TArrayDefInf
+      drShortStrDef: TShortStrDefInf
+      drFileDef: TFileDefInf
+      drTextDef: TTypeDefBase
+      drStringDef,drWideStrDef: TStringDefInf
+      drVariantDef: TVariantDefInf
+      drProcTypeDef: TProcTypeDefInf
+      drObjVMTDef: TObjVMTDefInf
+      drObjDef: TObjDefInf
+      drClassDef: TClassDefInf
+ %$IF (Ver>=8)and IsDelphi;
+      drMetaClassDef: TMetaClassDefInf
+ %$END
+      drInterfaceDef: TInterfaceDefInf
+      drEmbeddedProcStart:TEmbeddedList
+      drEmbeddedProcEnd: void
+      drCBlock: TCodeBlockInf
+      drFixUp: TFixUpData
+      drCodeLines: TCodeLinesData
+      drLinNum: TLinNumData
+      drStrucScope: TStrucScopeData
+      drSymbolRef: TSymbolRefData
+      drLocVarTbl: TLocVarTbl
+%$IF Ver>=3;
+      drUnitFlags: TUnitFlagsData
+%$END
+/*
+%$IF Ver>=100; //Kylix specific flags
+      drUnit3,drUnit3s: array[3]of byte
+      drUnit4: ulong
+%$END
+*/
+     %$IF gen7;
+       drConstAddInfo: TConstAddInfo
+     %$END
+     %$IF (Ver>=7)and IsDelphi;
+       drProcAddInfo: TNDXB1//byte //=02
+     %$END
+      drSetDeft: TSetDeftInfo
+     %$IF (Ver>=9)and IsDelphi;
+      drStop2: ulong
+     %$ELSE
+      drStop2: void
+     %$END
+     %$IF (Ver>=8)and IsDelphi;
+      drORec: TORec //goes before drCBlock
+     %$END
+     %$IF (Ver>=7)and IsDelphi;
+      drInfo98: TInfo98Rec
+     %$END
+     %$IF (Ver>=10)and IsDelphi;
+      drCLine: struc pas
+       %$IF (Ver>=14)and IsDelphi;
+        X: byte//TNDXB1
+       %$END
+        Cnt: TNDXB1
+        Txt: array[@.Cnt:Val]of Char
+       ends
+      drA1Info: struc pas
+        V0: TNDXB1
+        V1: TNDXB1
+        V2: TNDXB1
+        V3: TNDXB1
+        Cnt: TNDXB1
+        Tbl: array[@.Cnt:Val]of TNDXB1
+       ends
+      drA2Info: void
+      %$IF (Ver>=12)and IsDelphi;
+      arCopyDecl: TNDXB1
+      drA5Info: struc pas
+      //  bA6: Byte;
+      //  X: TNDXB1
+       ends
+      drA6Info: TDCU30ListC //void
+      drA7Info: struc pas
+        V1: TNDXB1
+        Len: TNDXB1
+        Tbl: array[@.Len:Val]of TNDXB1
+       ends
+      drA8Info: TNDXB1 //The index of template arg address
+     %$IF (Ver>=17)and IsDelphi;
+      drA9Info: TNDXB1
+     %$END
+      drDynArrayDef: TDynArrayInf
+      drTemplateArgDef: TTemplateArgInf
+      drTemplateCall: TTemplateCall
+      drUnicodeStringDef: TStringDefInf
+       %$IF (Ver>=15)and IsDelphi and mode64;
+        drSegInfo: struc pas
+          Len: TNDXB1
+          Tbl: array[@.Len:Val] of struc pas
+            Name: str
+            F: byte
+            H: TNDXB1
+           ends
+         ends
+        drB2Info: struc pas
+          Len: TNDXB1
+          Tbl: array[@.Len:Val] of struc pas
+            hAddr: TNDXB1 //with data
+            V0: TNDXB1
+            B: Byte
+            V2: TNDXB1
+            V3: TNDXB1
+            Size: TNDXB1
+            V5: TNDXB1
+           ends
+        ends
+       %$END
+      %$END
+     %$END
+     else struc pas
+      Name: TNameStr
+      D: case @@@.Tag of
+        drSrc, drObj, drAsm: TSrcInf
+        drRes: TResInf
+        drUnit,drUnit1: TUnitInf
+       %$IF (Ver>=13)and IsDelphi;
+        drUnitInlineSrc: TUnitInlineSrcInf
+       %$END
+        drDLL: TDllInf
+        drType: TTypeInf
+        drTypeP: TTypePInf
+        drImpType,drImpVal: ulong
+        drImpTypeDef: TImpTypeDefInf
+        drExport: TExportInf
+        drVar,drThreadVar: TVarInf
+        drVarC: TVarInf
+        drAbsVar: TVarInf
+       /* drProc: TProcInf((@@.Name[0]=0)or(@@.Name='.')/* for Ver>=6 : */or
+          (@@.Name='..'))*/
+       %$IF (Ver>=14)and IsDelphi;
+        drProc: TProcInf((@@.Name.L=0)or(@@.Name.S[0]='.')or(@@.Name.S[0]='$'))
+       %$ELSIF (Ver>=12)and IsDelphi;
+        drProc: TProcInf((@@.Name.L=0)or(@@.Name.S[0]='.'))
+       %$ELSE
+        drProc: TProcInf((@@.Name[0]=0)or(@@.Name[1]='.'))
+       %$END
+        drSysProc: TSysProcInf
+        drConst: TConstDef
+        drResStr: TVarInf //TResStrDef
+        drLabel: TNDXB1
+       %$IF (Ver>=7)and IsDelphi;
+        drUnitAddInfo: TUnitAddInfo
+       %$END
+       %$IF (Ver>=8)and IsDelphi;
+        drStrConstRec: TStrConstRec
+       %$END
+       %$IF (Ver>=10)and IsDelphi;
+       /* drStrConstRec
+        drAddInfo6: struc pas
+           V1: TNDXB1 //0
+           Z1: TNDXB1 //0
+           V2: TNDXB1 //0
+           Z2: TNDXB1 //was<>0
+         ends
+       */
+        drSpecVar: TVarInf
+        /*
+         struc pas
+           V1: TNDXB1 //#23
+           Z1: TNDXB1 //0
+           V2: TNDXB1 //#17
+           Z2: TNDXB1 //0
+         ends
+        */
+       %$END
+       %$IF (Ver>=12)and IsDelphi;
+        drDelayedImpInfo: TDelayedImpRec
+       %$END
+      endc
+     ends
+    endc
+ends:displ=('[',ADDR(&@),']',@)
+
+TDCU30List0 array of TDCU30Rec ?((@.Tag<0x61/*'a'*/)and
+  (@.Tag<>TDCU30RecTag.drType)and
+  (@.Tag<>TDCU30RecTag.drTypeP)and
+  (@.Tag<>TDCU30RecTag.drProc)and
+  (@.Tag<>TDCU30RecTag.drSysProc)and
+  (@.Tag<>TDCU30RecTag.drConst)and
+  (@.Tag<>TDCU30RecTag.drResStr)and
+  (@.Tag<>TDCU30RecTag.drVar)and
+  (@.Tag<>TDCU30RecTag.drThreadVar)and
+  (@.Tag<>TDCU30RecTag.drVarC)and
+  (@.Tag<>TDCU30RecTag.drAbsVar)and
+  (@.Tag<>TDCU30RecTag.drVoid)and
+  (@.Tag<>TDCU30RecTag.drLabel)and
+  (@.Tag<>TDCU30RecTag.drRecDef)and
+  (@.Tag<>TDCU30RecTag.drPtrDef)and
+  (@.Tag<>TDCU30RecTag.drRangeDef)and
+  (@.Tag<>TDCU30RecTag.drChRangeDef)and
+  (@.Tag<>TDCU30RecTag.drWCharRangeDef)and
+  (@.Tag<>TDCU30RecTag.drBoolRangeDef)and
+  (@.Tag<>TDCU30RecTag.drEnumDef)and
+  (@.Tag<>TDCU30RecTag.drFloatDef)and
+  (@.Tag<>TDCU30RecTag.drSetDef)and
+  (@.Tag<>TDCU30RecTag.drArrayDef)and
+  (@.Tag<>TDCU30RecTag.drShortStrDef)and
+  (@.Tag<>TDCU30RecTag.drFileDef)and
+  (@.Tag<>TDCU30RecTag.drTextDef)and
+  (@.Tag<>TDCU30RecTag.drStringDef)and
+  (@.Tag<>TDCU30RecTag.drWideStrDef)and
+  (@.Tag<>TDCU30RecTag.drWideRangeDef)and
+  (@.Tag<>TDCU30RecTag.drVariantDef)and
+  (@.Tag<>TDCU30RecTag.drProcTypeDef)and
+  (@.Tag<>TDCU30RecTag.drObjVMTDef)and
+  (@.Tag<>TDCU30RecTag.drObjDef)and
+  (@.Tag<>TDCU30RecTag.drClassDef)and
+/*
+%$IF Ver>=100; //Kylix specific flags
+  (@.Tag<>TDCU30RecTag.drUnit4)and
+  (@.Tag<>TDCU30RecTag.drUnit3s)and
+%$END
+*/
+ %$IF (Ver>=7)and IsDelphi;
+  (@.Tag<>TDCU30RecTag.drUnitAddInfo)and
+ %$END
+ %$IF (Ver>=8)and IsDelphi;
+  (@.Tag<>TDCU30RecTag.drStrConstRec)and
+  (@.Tag<>TDCU30RecTag.drMetaClassDef)and
+ %$END
+%$IF (Ver>=10)and IsDelphi;
+//  (@.Tag<>TDCU30RecTag.drAddInfo6)and
+  (@.Tag<>TDCU30RecTag.drSpecVar)and
+%$END
+ %$IF (Ver>=12)and IsDelphi;
+  (@.Tag<>TDCU30RecTag.drDynArrayDef)and
+  (@.Tag<>TDCU30RecTag.drTemplateArgDef)and
+  (@.Tag<>TDCU30RecTag.drTemplateCall)and
+  (@.Tag<>TDCU30RecTag.drUnicodeStringDef)and
+ %$END
+  (@.Tag<>TDCU30RecTag.drInterfaceDef)
+  or(@.Tag=TDCU30RecTag.drStop2)
+  or(@.Tag=TDCU30RecTag.drStop_a)
+  or(@.Tag>0x7A/*z*/)and
+  (@.Tag<>TDCU30RecTag.drCodeLines)and
+  (@.Tag<>TDCU30RecTag.drLinNum)and
+  (@.Tag<>TDCU30RecTag.drStrucScope)and
+  (@.Tag<>TDCU30RecTag.drSymbolRef)and
+  (@.Tag<>TDCU30RecTag.drLocVarTbl)and
+/*
+%$IF Ver>=100; //Kylix specific flags
+  (@.Tag<>TDCU30RecTag.drUnit3)and
+%$END
+*/
+// %$IF (Ver>=7)and IsDelphi;
+ %$IF gen7;
+  (@.Tag<>TDCU30RecTag.drConstAddInfo)and
+ %$END
+ %$IF (Ver>=7)and IsDelphi;
+  (@.Tag<>TDCU30RecTag.drProcAddInfo)and
+ %$END
+ %$IF (Ver>=8)and IsDelphi;
+  (@.Tag<>TDCU30RecTag.drORec)and
+ %$END
+%$IF (Ver>=7)and IsDelphi;
+  (@.Tag<>TDCU30RecTag.drInfo98)and
+%$END
+%$IF (Ver>=10)and IsDelphi;
+  (@.Tag<>TDCU30RecTag.drCLine)and
+  (@.Tag<>TDCU30RecTag.drA1Info)and
+  (@.Tag<>TDCU30RecTag.drA2Info)and
+ %$IF (Ver>=12)and IsDelphi;
+  (@.Tag<>TDCU30RecTag.arCopyDecl)and
+  (@.Tag<>TDCU30RecTag.drA5Info)and
+  (@.Tag<>TDCU30RecTag.drA6Info)and
+  (@.Tag<>TDCU30RecTag.drA7Info)and
+  (@.Tag<>TDCU30RecTag.drA8Info)and
+ %$IF (Ver>=17)and IsDelphi;
+  (@.Tag<>TDCU30RecTag.drA9Info)and
+ %$END
+  (@.Tag<>TDCU30RecTag.drDelayedImpInfo)and
+ %$END
+ %$IF (Ver>=15)and IsDelphi and mode64;
+  (@.Tag<>TDCU30RecTag.drSegInfo)and
+  (@.Tag<>TDCU30RecTag.drB2Info)and
+ %$END
+%$END
+  (@.Tag<>TDCU30RecTag.drUnitFlags)and
+  (@.Tag<>TDCU30RecTag.drSetDeft)
+)!TDCU30RecTag;
+
+//TDCU30List0 array of TDCU30Rec ?(@.Tag=0)!Char;
+//TDCU30List0 array[100] of TDCU30Rec
+
+TDCU30ListC array of TDCU30Rec ?@.Tag=TDCU30RecTag.drStop1!TDCU30RecTag;
+TEmbeddedList array of TDCU30Rec/*TEmbeddedInf*/ ?
+  /*@.Tag<>TDCU30RecTag.drProc*/
+  @.Tag=TDCU30RecTag.drEmbeddedProcEnd!TDCU30RecTag;
+
+//Unit header record (version-dependent)
+
+%$IF Ver=2;
+//Delphi2
+type
+
+TDCUHeader struc pas
+  FileSize: ulong
+  CompileTime: TFileTime //L1: ulong
+  b00: byte
+  Tbl: TDCU30List0
+ends//:[@:Size=FileSize]
+
+%$ELSIF Ver=3;
+//Delphi3
+type
+
+TDCUHeader struc pas
+  FileSize: ulong
+  CompileTime: TFileTime //L1: ulong
+  Inf: ulong
+  b00: byte
+/*
+  Tag1: TDCU30RecTag
+//  b01: byte
+//  Some: raw[@.b01]
+  Flags: TNDXB1 //0x500 - WEAKPACKAGEUNIT
+*/
+  Tbl: TDCU30List0
+ends//:[@:Size=FileSize]
+
+%$ELSIF Ver=4;
+//Delphi4
+type
+
+TDCUHeader struc pas
+  FileSize: ulong
+  CompileTime: TFileTime //L1: ulong
+  Inf: ulong
+  b00: byte
+/*
+  Tag1: TDCU30RecTag
+//  b01: byte
+//  Some: raw[@.b01]
+  Flags: TNDXB1 //0x500 - WEAKPACKAGEUNIT
+  Bx: Byte
+*/
+  Tbl: TDCU30List0
+ends//:[@:Size=FileSize]
+
+%$ELSIF Ver=5;
+//Delphi5
+type
+
+TDCUHeader struc pas
+  FileSize: ulong
+  L1: ulong
+  Inf: ulong
+//  FT: TFileTime // L1: ulong
+//  L2: ulong
+  b00: byte
+/*
+  Tag1: TDCU30RecTag
+//  b01: byte
+//  Some: raw[@.b01]
+  Flags: TNDXB1 //0x500 - WEAKPACKAGEUNIT
+  Bx: Byte
+*/
+  Tbl: TDCU30List0
+ends//:[@:Size=FileSize]
+
+%$ELSIF Ver=6;
+//Delphi6
+type
+
+TDCUHeader struc pas
+  FileSize: ulong
+  CompileTime: TFileTime //L1: ulong
+  Inf: ulong
+  b00: byte
+  Tbl: TDCU30List0
+ends//:[@:Size=FileSize]
+
+%$ELSIF (Ver=7)or(Ver=8);
+//Delphi7
+type
+
+TDCUHeader struc pas
+  FileSize: ulong
+  CompileTime: TFileTime //L1: ulong
+  Inf: ulong
+  b00: byte
+  b02: byte
+  Tbl: TDCU30List0
+ends//:[@:Size=FileSize]
+
+%$ELSIF (Ver=9)or(Ver=10);
+//Delphi2005
+//Delphi2006
+type
+
+TDCUHeader struc pas
+  FileSize: ulong
+  CompileTime: TFileTime //L1: ulong
+  Inf: ulong
+  b00: byte
+  b02: byte
+  Name: str
+  Tbl: TDCU30List0
+ends//:[@:Size=FileSize]
+
+%$ELSIF (Ver=12)or(Ver=13)or(Ver=14)or(Ver=15)or(Ver=16)or(Ver=17)or(Ver=18);
+//Delphi2009
+//Delphi2010
+//Delphi XE
+//Delphi XE2
+//Delphi XE3
+//Delphi XE4
+//Delphi XE5
+type
+
+TDCUHeader struc pas
+  FileSize: ulong
+  CompileTime: TFileTime //L1: ulong
+  Inf: ulong
+  b00: byte
+  b02: byte
+  Name: str
+  bFE: TNDXB1
+  X: TNDXB1
+  Tbl: TDCU30List0
+ends//:[@:Size=FileSize]
+
+%$ELSIF Ver>=100;
+//Kylix 1.0,2.0
+type
+
+TLXRec struc pas
+  F: byte
+  D: ulong
+ends
+
+/*
+TLX0F array of TLXRec?@.F<>0x0F!void;:assert[@[0].F exc 0]
+TLX try
+  F: TLX0F
+  ELS: ulong
+endt
+*/
+TLX0F array of TLXRec?@.F<>0x0F!void;
+TELS num+(4):assert[Byte(@)<>TDCU30RecTag.drUnitFlags]
+TLX struc
+  TLX0F X //This structure was observed in the file QOpenBanner.dcu
+    //which displays Kylix nag screen and treated specially by
+    //compiler
+  try
+    ELS: TELS
+    NO: void
+  endt ELS //Sometimes these 4 bytes are not present, and the 1st byte of
+    //of them can have various values such as 0,0x12 or E0.
+ends
+
+TDCUHeader struc pas
+  FileSize: ulong
+  CompileTime: TFileTime //L1: ulong
+  Inf: ulong
+  b00: byte
+  LX: TLX
+  Tbl: TDCU30List0
+ends//:[@:Size=FileSize]
+
+%$END
+
+data
+  0x0004 TDCUHeader Hdr

@@ -1,0 +1,185 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{61D5030C-EA50-4F33-BC06-8BFEDB340603}</ProjectGuid>
+			<MainSource>dcu32int.dpr</MainSource>
+			<Base>True</Base>
+			<Config Condition="'$(Config)'==''">Debug</Config>
+			<TargetedPlatforms>1</TargetedPlatforms>
+			<AppType>Console</AppType>
+			<FrameworkType>None</FrameworkType>
+			<ProjectVersion>13.4</ProjectVersion>
+			<Platform Condition="'$(Platform)'==''">Win32</Platform>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Base)'=='true') or '$(Base_Win64)'!=''">
+			<Base_Win64>true</Base_Win64>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Base)'=='true') or '$(Base_Win32)'!=''">
+			<Base_Win32>true</Base_Win32>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_1)'!=''">
+			<Cfg_1>true</Cfg_1>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win32)'!=''">
+			<Cfg_1_Win32>true</Cfg_1_Win32>
+			<CfgParent>Cfg_1</CfgParent>
+			<Cfg_1>true</Cfg_1>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_2)'!=''">
+			<Cfg_2>true</Cfg_2>
+			<CfgParent>Base</CfgParent>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win32)'!=''">
+			<Cfg_2_Win32>true</Cfg_2_Win32>
+			<CfgParent>Cfg_2</CfgParent>
+			<Cfg_2>true</Cfg_2>
+			<Base>true</Base>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_ConsoleTarget>true</DCC_ConsoleTarget>
+			<VerInfo_AutoGenVersion>true</VerInfo_AutoGenVersion>
+			<VerInfo_Build>79</VerInfo_Build>
+			<DCC_UsePackage>IBEVNT30;VCLDB30;VCL30;VCLX30;INETDB30;INET30;VCLDBX30;VCLSMP30;QRPT30;TEEUI30;TEEDB30;TEE30;DSS30;$(DCC_UsePackage)</DCC_UsePackage>
+			<DCC_ImageBase>00400000</DCC_ImageBase>
+			<VerInfo_MinorVer>15</VerInfo_MinorVer>
+			<DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Winapi;$(DCC_Namespace)</DCC_Namespace>
+			<DCC_Alignment>1</DCC_Alignment>
+			<VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+			<DCC_Define>I64;$(DCC_Define)</DCC_Define>
+			<DCC_K>false</DCC_K>
+			<DCC_F>false</DCC_F>
+			<DCC_N>true</DCC_N>
+			<VerInfo_Release>1</VerInfo_Release>
+			<DCC_S>false</DCC_S>
+			<DCC_SymbolReferenceInfo>1</DCC_SymbolReferenceInfo>
+			<VerInfo_Keys>CompanyName=AX;FileDescription=Parser of Delphi 2.0-8.0, 2005(.net and WIN32), 2006-2010 (WIN32 only),  XE (WIN32 only), XE2, Kylix 1.0-3.0;FileVersion=1.15.1.79;InternalName=DCU32INT;LegalCopyright=Copyright ©2000-2012, Alexei E. Hmelnov;LegalTrademarks=;OriginalFilename=DCU32INT;ProductName=DCU32INT;ProductVersion=1.10.1;Comments=</VerInfo_Keys>
+			<DCC_DcuOutput>..\dcu</DCC_DcuOutput>
+			<DCC_E>false</DCC_E>
+			<VerInfo_Locale>1049</VerInfo_Locale>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Base_Win64)'!=''">
+			<Icon_MainIcon>dcu32int_Icon.ico</Icon_MainIcon>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Base_Win32)'!=''">
+			<VerInfo_Build>82</VerInfo_Build>
+			<VerInfo_MinorVer>16</VerInfo_MinorVer>
+			<Manifest_File>None</Manifest_File>
+			<Icon_MainIcon>dcu32int_Icon1.ico</Icon_MainIcon>
+			<DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
+			<VerInfo_Locale>1033</VerInfo_Locale>
+			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.16.1.82;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_1)'!=''">
+			<DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+			<DCC_DebugInformation>false</DCC_DebugInformation>
+			<DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+			<DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+			<VerInfo_Build>82</VerInfo_Build>
+			<VerInfo_MinorVer>16</VerInfo_MinorVer>
+			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.16.1.82;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+			<VerInfo_Locale>1033</VerInfo_Locale>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_2)'!=''">
+			<DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
+			<DCC_Optimize>false</DCC_Optimize>
+			<DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
+		</PropertyGroup>
+		<PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
+			<VerInfo_Build>82</VerInfo_Build>
+			<VerInfo_MinorVer>16</VerInfo_MinorVer>
+			<DCC_DebugDCUs>true</DCC_DebugDCUs>
+			<Debugger_RunParams>&quot;C:\Program Files (x86)\Embarcadero\RAD Studio\9.0\lib\osx32\debug\Data.Bind.Components.dcu&quot;</Debugger_RunParams>
+			<VerInfo_Keys>CompanyName=AX;FileDescription=Parser of Delphi 2.0-8.0, 2005-2006 (.net and WIN32), 2007-2010 (WIN32 only),  XE (WIN32 only), XE2-XE3 (WIN32,WIN64,OSX32), Kylix 1.0-3.0;FileVersion=1.16.1.82;InternalName=DCU32INT;LegalCopyright=Copyright ©2000-2013, Alexei E. Hmelnov;LegalTrademarks=;OriginalFilename=DCU32INT;ProductName=DCU32INT;ProductVersion=1.16;Comments=</VerInfo_Keys>
+			<VerInfo_Locale>1033</VerInfo_Locale>
+		</PropertyGroup>
+		<ItemGroup>
+			<DelphiCompile Include="$(MainSource)">
+				<MainSource>MainSource</MainSource>
+			</DelphiCompile>
+			<DCCReference Include="DCU32.pas"/>
+			<DCCReference Include="DCUTbl.pas"/>
+			<DCCReference Include="DCU_In.pas"/>
+			<DCCReference Include="DCU_Out.pas"/>
+			<DCCReference Include="FixUp.pas"/>
+			<DCCReference Include="DCURecs.pas"/>
+			<DCCReference Include="DasmDefs.pas"/>
+			<DCCReference Include="DasmCF.pas"/>
+			<DCCReference Include="DCP.pas"/>
+			<DCCReference Include="DasmX86.pas"/>
+			<DCCReference Include="DasmMSIL.pas"/>
+			<BuildConfiguration Include="Debug">
+				<Key>Cfg_2</Key>
+				<CfgParent>Base</CfgParent>
+			</BuildConfiguration>
+			<BuildConfiguration Include="Base">
+				<Key>Base</Key>
+			</BuildConfiguration>
+			<BuildConfiguration Include="Release">
+				<Key>Cfg_1</Key>
+				<CfgParent>Base</CfgParent>
+			</BuildConfiguration>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Delphi.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<Delphi.Personality>
+					<Source>
+						<Source Name="MainSource">dcu32int.dpr</Source>
+					</Source>
+					<VersionInfo>
+						<VersionInfo Name="IncludeVerInfo">True</VersionInfo>
+						<VersionInfo Name="AutoIncBuild">True</VersionInfo>
+						<VersionInfo Name="MajorVer">1</VersionInfo>
+						<VersionInfo Name="MinorVer">15</VersionInfo>
+						<VersionInfo Name="Release">1</VersionInfo>
+						<VersionInfo Name="Build">103</VersionInfo>
+						<VersionInfo Name="Debug">False</VersionInfo>
+						<VersionInfo Name="PreRelease">False</VersionInfo>
+						<VersionInfo Name="Special">False</VersionInfo>
+						<VersionInfo Name="Private">False</VersionInfo>
+						<VersionInfo Name="DLL">False</VersionInfo>
+						<VersionInfo Name="Locale">1049</VersionInfo>
+						<VersionInfo Name="CodePage">1251</VersionInfo>
+					</VersionInfo>
+					<VersionInfoKeys>
+						<VersionInfoKeys Name="CompanyName">AX</VersionInfoKeys>
+						<VersionInfoKeys Name="FileDescription">Parser of Delphi 2.0-8.0, 2005(.net and WIN32), 2006-2010 (WIN32 only),  XE (WIN32 only), XE2, Kylix 1.0-3.0</VersionInfoKeys>
+						<VersionInfoKeys Name="FileVersion">1.15.1.103</VersionInfoKeys>
+						<VersionInfoKeys Name="InternalName">DCU32INT</VersionInfoKeys>
+						<VersionInfoKeys Name="LegalCopyright">Copyright ©2000-2012, Alexei E. Hmelnov</VersionInfoKeys>
+						<VersionInfoKeys Name="LegalTrademarks"/>
+						<VersionInfoKeys Name="OriginalFilename">DCU32INT</VersionInfoKeys>
+						<VersionInfoKeys Name="ProductName">DCU32INT</VersionInfoKeys>
+						<VersionInfoKeys Name="ProductVersion">1.10.1</VersionInfoKeys>
+						<VersionInfoKeys Name="Comments"/>
+					</VersionInfoKeys>
+					<Excluded_Packages>
+						<Excluded_Packages Name="$(BDSBIN)\dcloffice2k160.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+						<Excluded_Packages Name="$(BDSBIN)\dclofficexp160.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+					</Excluded_Packages>
+				</Delphi.Personality>
+				<Platforms>
+					<Platform value="Win64">False</Platform>
+					<Platform value="OSX32">False</Platform>
+					<Platform value="Win32">True</Platform>
+				</Platforms>
+				<ModelSupport>False</ModelSupport>
+			</BorlandProject>
+			<ProjectFileVersion>12</ProjectFileVersion>
+		</ProjectExtensions>
+		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')" Project="$(BDS)\Bin\CodeGear.Delphi.Targets"/>
+		<Import Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')" Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj"/>
+	</Project>

@@ -1,0 +1,11 @@
+type bit
+
+TFileTime struc pas
+  S: num+(5)
+  M: num+(6)
+  H: num+(5)
+  D: num+(5)
+  Mon: num+(4)
+  Y: num+(7)
+ends:displ=(INT(@.D),'.',INT(@.Mon),'.',INT(@.Y+1980),' ',
+      INT(@.H),':',INT(@.M),':',INT(@.S*2))

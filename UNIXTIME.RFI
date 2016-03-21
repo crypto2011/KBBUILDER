@@ -1,0 +1,12 @@
+const
+  Days1970=DateToDays(1970,1,1);
+  DaySec=24*60*60;
+
+type
+//TTimeStamp /*TFileTime*/DWORD
+TTimeStamp enum ulong ():displ=(INT(DaysToDay(Days1970+@ div DaySec)),'.',
+  INT(DaysToMonth(Days1970+@ div DaySec)),'.',
+  INT(DaysToYear(Days1970+@ div DaySec)),' ',
+  INT((@ div (60*60))mod 24),':',INT((@ div 60)mod 60),'''',
+  INT(@ mod 60),'"')
+

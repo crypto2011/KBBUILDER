@@ -1,0 +1,215 @@
+DCU32INT Disassembler Usage.
+----------------------------
+
+The only place, where the disassembler is used in the current version 
+of the program is the
+
+  procedure TUnit.ShowCodeBl(Ofs0,BlOfs,BlSz: Cardinal);
+
+  where
+    Ofs0 - virtual address of the block start (>0 only for procedures,
+           which where linked from some .obj file; there could be near 
+           jumps or conditional jumps between such procedures)
+    BlOfs - Offset of the block in the unit data block
+    BlSz - Size of the block.
+
+
+To obtain the physical address of the block, the
+
+  function TUnit.GetBlockMem(BlOfs,BlSz: Cardinal; var ResSz: Cardinal): Pointer;
+
+is used. ResSz<BlSz when BlOfs+BlSz>FDataBlSize, it can happen only due to
+some error.
+
+
+To obtain the index of the first fixup with its Offset>=BlOfs is used the
+
+  function TUnit.GetStartFixup(Ofs: Cardinal): integer;
+
+Binary search is used to get the start fixup.
+
+
+The next fixup index with its Offset>=Ofs after the fixup with 
+the index iStart is returned by the
+
+  function TUnit.GetNextFixup(iStart: integer; Ofs: Cardinal): integer;
+
+Sequential search is used to get the next fixup.
+
+
+Both functions return FFixupCnt, when there is no more fixups after Ofs.
+
+The fixup information is stored in the table of 8-byte records
+(see the unit FixUp)
+
+TFixupRec = record
+  OfsF: integer;{Low 3 bytes - ofs, high 1 byte - F}
+  Ndx: TNDX; {The index of the target address}
+end ;
+
+
+The constant
+
+  FixOfsMask = $FFFFFF;
+
+is used to extract the fixup Offset value from the OfsF field.
+
+
+The F byte in the OfsF field can take the following values:
+
+  fxAddr = 1; //absolute data address should be substituted
+  fxJmpAddr = 2; //relative data address should be substituted 
+     //(for jmp or call near instructions).
+  fxDataAddr = 3; //imported data reference (from another unit)
+     //this interpretation appears only in Delphi 3.0+
+
+  fxStart20 = 3; //Start of block marker in Delhi 2.0 units
+  fxEnd20 = 4;  //End of of block marker in Delhi 2.0 units
+  fxStart30 = 5; //Start of block marker in Delhi 3.0+ units
+  fxEnd30 = 6; //End of block marker in Delhi 3.0-6.0 and Kylix units
+  fxStart70 = 6; //Start of block marker in Delhi 7.0, 2005 (WIN32) units
+  fxEnd70 = 7; //End of block marker in Delhi 7.0, 2005 (WIN32) units
+
+  fxStartMSIL = $0B; //Start of block marker in Delhi 8.0, 2005 .net units
+  fxEndMSIL = $0C; //End of block marker in Delhi 8.0, 2005 .net units
+
+  fxStart100 = $0C; //Start of block marker in Delhi 2006 (WIN32) units
+  fxEnd100 = $0D; //End of block marker in Delhi 2006 (WIN32) units
+
+Note that some intermediate fixup codes were not observed and their
+purposes are unknown. Please inform me (mailto:alex@icc.ru) if You'll
+notice some new fixup.
+
+
+The variables 
+
+  fxStart: Byte;
+  fxEnd: Byte;
+
+are assigned to the fxStart and fxEnd values of the current unit version.
+
+The fxEnd flag is used only for the last block, and for all the other
+blocks the block end is marked by the start of the next block.
+
+All the fixups (fxAddr, fxJmpAddr, fxDataAddr) are 4-byte in size. 
+The target address of fixup is determined as the address, corresponding 
+to the fixup Ndx + the 4 byte value at the fixup Offset.
+
+The 
+
+  function TUnit.GetAddrStr(hDef: integer; ShowNDX: boolean): String;
+    hDef - Ndx
+    ShowNdx - include hDef into the result or not
+
+can be used to get the Ndx text description, and the
+
+  function TUnit.GetGlobalAddrDef(hDef: integer; var{out} U: TUnit): TDCURec;
+
+can be used to get the unit, where the address is defined and 
+the definition of the address.
+
+
+Besides from the GetStartFixup and GetNextFixup methods, the ShowCodeBl
+procedure uses as an interface to the disassembler, the following 
+functions from the FixUp unit:
+
+procedure SetFixupInfo(ACodeFixupCnt: integer; ACodeFixups: PFixupRec;
+  AFixUnit: Pointer{TUnit});
+
+This function sets the fixup information, which is used, e.g.
+to ensure, that all the addresses (e.g. jump address) are fixed, or,
+on the other hand, that fixed memory is not interpreted as code bytes, 
+and also, to show the fixup targets when printing the decoded 
+instruction (see the function ReportFixup(Fix: PFixupRec): boolean).
+
+Now the procedure ShowCodeBl is executed for every TProcDecl, and
+represents all the contents of the corresponding memory as a
+sequence of instructions. When the instructions are interleaved
+with some data, the correct instructions' boundaries can be shifted, and
+it can be completely wrong. The only insurance, which enables to hope, 
+that such a shift won't be too long, is taking into account the fixup 
+information. 
+
+Another problem is that not all the TProcDecls are really code, some of 
+them are used to represent initial values of typed constants. Example:
+
+const
+  conStr:{T#2}System.AnsiString{Ofs:0x1C} = 'QWERTY';
+
+procedure _NF_1A?{BProc:0,B0:0,Sz:10};
+begin
+  //raw[0x10]at 0x20
+  00: ÿÿ     [FF FF               | ? EDI
+  02: ÿÿ     |FF FF               | ? EDI
+  04: .      |06                  | PUSH ES
+  05: ..     |00 00               | ADD BYTE PTR [EAX],AL
+  07: .QW    |00 51 57            | ADD BYTE PTR [ECX+87],DL
+  0A: E      |45                  | INC EBP
+  0B: R      |52                  | PUSH EDX
+  0C: T      |54                  | PUSH ESP
+  0D: Y      |59                  | POP ECX
+  0E: ..     |00 00               | ADD BYTE PTR [EAX],AL
+end;
+
+One can suppose that the simple improvement to DCU32INT could be to 
+take into account that some address range in the code part should be 
+interpreted as a data by remembering that information somewhere in the 
+TProcDecl. The problem here is that we have no information to distinguish 
+the following two cases:
+
+ CP1: PChar = 'ABCD';
+ CP2: PChar = @TestProc; 
+
+where TestProc is declared only in implementation. So, not everything 
+is so simple. 
+
+The possible way to detect all the real procedures could be:
+  1. Start with all the real procedures (which are named). 
+    The entry point of all the procedures is at their block start.
+  2. Follow the references and disassemble only those procedures, 
+    which are called by some other procedures.
+
+
+Control flow analysis.
+----------------------
+
+Now the DCU32INT implements a basic control flow analysis. It is 
+turned on by the -AC switch and implemented in the TUnit.DasmCodeBlCtlFlow
+method. The resulting code parts are stored in the data structures
+defined in the unit DasmCF. I hope that in the future the control flow 
+information will be further analysed, e.g. to detect the high-level
+operators like loops, ifs, cases and so on.
+
+
+Generic disassemblers.
+----------------------
+
+Since Delphi 8.0 the *.dcuil files contain not the i80x86 opcodes, but 
+the MSIL opcodes (of .net). To support the capability of using different 
+disassemblers for different unit versions the DCU32INT disassembly code
+was modified. Now it uses generic disassemblers, which are specified
+in the DasmDefs unit. 
+
+A concrete disassembler is turned on by calling the SetDisassembler procedure.
+The program now implements the following disassemblers:
+
+- i80x86: use DasmX86, call Set80x86Disassembler to turn on;
+- MSIL (.net): use DasmMSIL, call SetMSILDisassembler to turn on.
+
+So, new code kinds are welcome now.
+
+A generic disassembler is characterised by the following three functions:
+
+1) ReadCommand - reads the command at CodePtr, 
+  modifies the global variables CodePtr, PrevCodePtr: PrevCodePtr points 
+  to the command start, CodePtr points to the command end. ReadCommand
+  returns false if the memory doesn`t contain a valid code.
+2) ShowCommand - prints the text of the command just parsed by ReadCommand;
+3) CheckCommandRefs - detects the references to the other commands
+  from the command just parsed by ReadCommand, e.g. destinations of
+  conditional branches.
+
+---------------------------------------------------------------------------
+DCU32INT home page: http://hmelnov.icc.ru/DCU/
+
+Alexei E. Hmelnov (mailto:alex@icc.ru)

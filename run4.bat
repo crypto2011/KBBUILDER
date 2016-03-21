@@ -1,0 +1,1 @@
+h:\prg\dcu32pas\dcu32int.exe "-UJ:\RUNIMAGE\DELPHI40\LIB" %1 %2 %3

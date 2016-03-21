@@ -1,0 +1,1 @@
+h:\prg\dcu32pas\dcu32int.exe "-UI:\TMP\DCUTST\v6" %1 %2 %3
