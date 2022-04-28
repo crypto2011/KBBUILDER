@@ -1,10 +1,10 @@
 How build custom knowledge base:
 --------------------------------
-1. Copy all dcu-files you want to add to knowledge base to directory BUILDER. 
+1. Copy all dcu-files you want to add to the knowledge base to directory BUILDER. 
 2. Run BuildKb.exe with parameter (name of custom knowledge base).
 3. Additionaly you can test new base: just copy it to directory TESTER and run
 TestKb.exe with parameter (name of custom knowledge base). Result is file test.out.
-4. When you run IDR, choose No in Dialog "Knowledbase kind selection".
+4. When you run IDR, choose No in Dialog "Knowledge base kind selection".
 
 The DCU32INT utility by Alexei Hmelnov.
 Version 1.18.1
